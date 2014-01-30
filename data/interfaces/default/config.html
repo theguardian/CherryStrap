@@ -56,10 +56,12 @@
                type: "POST",
                url: "configUpdate",
                data: $("#config_form").serialize(),
-               success: function(data)
-               {
+               success: function(data) {
                    $(".ajaxMsg").html('<div class="alert alert-success">Configuration Saved Successfully!</div>').show().fadeOut(5000);
-               }
+                },
+                error: function(XMLHttpRequest, textStatus, errorThrown) { 
+                    $(".ajaxMsg").html('<div class="alert alert-danger">'+textStatus+': '+errorThrown+'</div>').show().fadeOut(5000); 
+                }  
              });
         return false;
     });
