@@ -62,6 +62,7 @@ class WebInterface(object):
         cherrystrap.LOGDIR = logdir
 
         cherrystrap.config_write()
+        logger.info("Configuration saved successfully")
 
     configUpdate.exposed = True
 
