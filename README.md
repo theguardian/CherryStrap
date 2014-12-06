@@ -11,6 +11,9 @@ A rapidly deployable web server based on CherryPy Framework, Mako Templates, and
 4. Visit http://yo.ur.i.p:7889
 5. Develop!
 
+## Notes
+OpenSSL/pyOpenSSL must be installed if https:// is enabled
+
 ## License and Copyright
 
 All code is offered under the GPLv2 license, unless otherwise noted. Please see
