@@ -46,6 +46,10 @@ HTTP_ROOT = None
 HTTP_LOOK = None
 LAUNCH_BROWSER = False
 
+HTTPS_ENABLED = False
+HTTPS_KEY = 'keys/server.key'
+HTTPS_CERT = 'keys/server.crt'
+
 
 def CheckSection(sec):
     """ Check if INI section exists, if not create it """
@@ -128,7 +132,8 @@ def initialize():
 
     with INIT_LOCK:
 
-        global __INITIALIZED__, FULL_PATH, PROG_DIR, LOGLEVEL, DAEMON, DATADIR, CONFIGFILE, CFG, LOGDIR, SERVER_NAME, HTTP_HOST, HTTP_PORT, HTTP_USER, HTTP_PASS, HTTP_ROOT, HTTP_LOOK, LAUNCH_BROWSER
+        global __INITIALIZED__, FULL_PATH, PROG_DIR, LOGLEVEL, DAEMON, DATADIR, CONFIGFILE, CFG, LOGDIR, SERVER_NAME, HTTP_HOST, HTTP_PORT, HTTP_USER, HTTP_PASS, HTTP_ROOT, HTTP_LOOK, LAUNCH_BROWSER, \
+        HTTPS_ENABLED, HTTPS_KEY, HTTPS_CERT
 
         if __INITIALIZED__:
             return False
@@ -145,6 +150,9 @@ def initialize():
 
         SERVER_NAME = check_setting_str(CFG, 'General', 'server_name', 'Server')
         HTTP_HOST = check_setting_str(CFG, 'General', 'http_host', '0.0.0.0')
+        HTTPS_ENABLED = bool(check_setting_int(CFG, 'General', 'https_enabled', 0))
+        HTTPS_KEY = check_setting_str(CFG, 'General', 'https_key', 'keys/server.key')
+        HTTPS_CERT = check_setting_str(CFG, 'General', 'https_cert', 'keys/server.crt')
         HTTP_USER = check_setting_str(CFG, 'General', 'http_user', '')
         HTTP_PASS = check_setting_str(CFG, 'General', 'http_pass', '')
         HTTP_ROOT = check_setting_str(CFG, 'General', 'http_root', '')
@@ -226,8 +234,13 @@ def launch_browser(host, port, root):
     if host == '0.0.0.0':
         host = 'localhost'
 
+    if HTTPS_ENABLED:
+        protocol = 'https'
+    else:
+        protocol = 'http'
+
     try:
-        webbrowser.open('http://%s:%i%s' % (host, port, root))
+        webbrowser.open('%s://%s:%i%s' % (protocol, host, port, root))
     except Exception, e:
         logger.error('Could not launch browser: %s' % e)
 
@@ -239,6 +252,9 @@ def config_write():
     new_config['General']['server_name'] = SERVER_NAME
     new_config['General']['http_port'] = HTTP_PORT
     new_config['General']['http_host'] = HTTP_HOST
+    new_config['General']['https_enabled'] = int(HTTPS_ENABLED)
+    new_config['General']['https_key'] = HTTPS_KEY
+    new_config['General']['https_cert'] = HTTPS_CERT
     new_config['General']['http_user'] = HTTP_USER
     new_config['General']['http_pass'] = HTTP_PASS
     new_config['General']['http_root'] = HTTP_ROOT

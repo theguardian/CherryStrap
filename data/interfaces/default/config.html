@@ -19,6 +19,18 @@
                 <td><input type="text" name="http_port" value="${config['http_port']}" size="5" maxlength="5"></td>
             </tr>
             <tr>
+                <td>https:// ?</td>
+                <td><input type="checkbox" name="https_enabled" value=1 ${config['https_enabled']}></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>HTTPS Key</td>
+                <td><input type="text" name="https_key" value="${config['https_key']}" size="20" maxlength="40"></td>
+                <td>HTTPS Cert</td>
+                <td><input type="text" name="https_cert" value="${config['https_cert']}" size="20" maxlength="40"></td>
+            </tr>
+            <tr>
                 <td>Username:</td>
                 <td><input type="text" name="http_user" value="${config['http_user']}" size="20" maxlength="40"></td>
                 <td>Password:</td>
@@ -53,16 +65,20 @@
 <script>
     $("#config_form").submit(function() {
         $.ajax({
-               type: "POST",
-               url: "configUpdate",
-               data: $("#config_form").serialize(),
-               success: function(data) {
-                   $(".ajaxMsg").html('<div class="alert alert-success">Configuration Saved Successfully!</div>').show().fadeOut(5000);
-                },
-                error: function(XMLHttpRequest, textStatus, errorThrown) { 
-                    $(".ajaxMsg").html('<div class="alert alert-danger">'+textStatus+': '+errorThrown+'</div>').show().fadeOut(5000); 
-                }  
-             });
+            type: "POST",
+            url: "configUpdate",
+            data: $("#config_form").serialize(),
+            beforeSend: function() {
+                $(".ajaxMsg").html('<div class="alert alert-warning"><img src="images/ajax-loader.gif"></div>').show();
+            },
+            success: function(data)
+            {
+                $(".ajaxMsg").html('<div class="alert alert-success">Configuration Saved Successfully!</div>').show().fadeOut(5000);
+            },
+            error: function(XMLHttpRequest, textStatus, errorThrown) { 
+                $(".ajaxMsg").html('<div class="alert alert-danger">'+textStatus+': '+errorThrown+'</div>').show().fadeOut(5000); 
+            }
+        });
         return false;
     });
 </script>

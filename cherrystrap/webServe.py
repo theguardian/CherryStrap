@@ -1,5 +1,5 @@
 import os, cherrypy, urllib
-import simplejson
+from lib import simplejson as json
 
 from mako.template import Template
 from mako.lookup import TemplateLookup
@@ -39,6 +39,9 @@ class WebInterface(object):
         config = {
                     "server_name":      cherrystrap.SERVER_NAME,
                     "http_host":        cherrystrap.HTTP_HOST,
+                    "https_enabled":    checked(cherrystrap.HTTPS_ENABLED),
+                    "https_key":        cherrystrap.HTTPS_KEY,
+                    "https_cert":       cherrystrap.HTTPS_CERT,
                     "http_user":        cherrystrap.HTTP_USER,
                     "http_port":        cherrystrap.HTTP_PORT,
                     "http_pass":        cherrystrap.HTTP_PASS,
@@ -50,11 +53,15 @@ class WebInterface(object):
         return serve_template(templatename="config.html", title="Settings", config=config)    
     config.exposed = True
 
-    def configUpdate(self, server_name="Server", http_host='0.0.0.0', http_user=None, http_port=7889, http_pass=None, http_look=None, launch_browser=0, logdir=None):
+    def configUpdate(self, server_name="Server", http_host='0.0.0.0', http_user=None, http_port=7889, http_pass=None, http_look=None, launch_browser=0, logdir=None, 
+        https_enabled=0, https_key=None, https_cert=None):
 
         cherrystrap.SERVER_NAME = server_name
         cherrystrap.HTTP_HOST = http_host
         cherrystrap.HTTP_PORT = http_port
+        cherrystrap.HTTPS_ENABLED = https_enabled
+        cherrystrap.HTTPS_KEY = https_key
+        cherrystrap.HTTPS_CERT = https_cert
         cherrystrap.HTTP_USER = http_user
         cherrystrap.HTTP_PASS = http_pass
         cherrystrap.HTTP_LOOK = http_look
@@ -95,7 +102,7 @@ class WebInterface(object):
                 'iTotalRecords':len(cherrystrap.LOGLIST),
                 'aaData':rows,
                 }
-        s = simplejson.dumps(dict)
+        s = json.dumps(dict)
         return s
     getLog.exposed = True
 

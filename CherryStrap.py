@@ -114,6 +114,16 @@ def main():
     if cherrystrap.DAEMON:
         cherrystrap.daemonize()
 
+    # Check if pyOpenSSL is installed. It is required for certificate generation
+    # and for CherryPy.
+    if cherrystrap.HTTPS_ENABLED:
+        try:
+            import OpenSSL
+        except ImportError:
+            logger.warn("The pyOpenSSL module is missing. Install this " \
+                "module to enable HTTPS. HTTPS will be disabled.")
+            cherrystrap.HTTPS_ENABLED = False
+
     # Try to start the server. 
     webStart.initialize({
                     'http_port': HTTP_PORT,
@@ -121,6 +131,9 @@ def main():
                     'http_root': cherrystrap.HTTP_ROOT,
                     'http_user': cherrystrap.HTTP_USER,
                     'http_pass': cherrystrap.HTTP_PASS,
+                    'https_enabled': cherrystrap.HTTPS_ENABLED,
+                    'https_key': cherrystrap.HTTPS_KEY,
+                    'https_cert': cherrystrap.HTTPS_CERT
             })
 
     if cherrystrap.LAUNCH_BROWSER and not options.nolaunch:
