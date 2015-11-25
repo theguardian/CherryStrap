@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 
-import six
+import lib.six as six
 
 
 class BaseTrigger(six.with_metaclass(ABCMeta)):

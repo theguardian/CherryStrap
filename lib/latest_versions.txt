@@ -6,6 +6,7 @@ apscheduler = 3.0.4
 configobj = 5.0.6
 passlib = 1.6.5
 simplejson = 3.8.1
+six = 1.10.0
 
 Scripts:
 certgen = https://github.com/notmyname/python_scripts/blob/master/openssl/certgen.py

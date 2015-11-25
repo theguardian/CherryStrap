@@ -7,7 +7,7 @@ from calendar import timegm
 import re
 
 from lib.pytz import timezone, utc
-import six
+import lib.six as six
 
 try:
     from inspect import signature

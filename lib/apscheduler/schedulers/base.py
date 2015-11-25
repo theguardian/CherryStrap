@@ -8,7 +8,7 @@ import sys
 
 from pkg_resources import iter_entry_points
 from lib.tzlocal import get_localzone
-import six
+import lib.six as six
 
 from lib.apscheduler.schedulers import SchedulerAlreadyRunningError, SchedulerNotRunningError
 from lib.apscheduler.executors.base import MaxInstancesReachedError, BaseExecutor

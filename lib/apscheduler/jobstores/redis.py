@@ -2,7 +2,7 @@ from __future__ import absolute_import
 from datetime import datetime
 
 from lib.pytz import utc
-import six
+import lib.six as six
 
 from lib.apscheduler.jobstores.base import BaseJobStore, JobLookupError, ConflictingIdError
 from lib.apscheduler.util import datetime_to_utc_timestamp, utc_timestamp_to_datetime
