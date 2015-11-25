@@ -5,7 +5,7 @@ try:
 except ImportError:
     from distutils.core import setup
 
-import lib.six as six
+from lib.six import six as six
 
 six_classifiers = [
     "Programming Language :: Python :: 2",

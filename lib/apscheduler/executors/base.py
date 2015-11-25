@@ -6,7 +6,7 @@ import logging
 import sys
 
 from lib.pytz import utc
-import lib.six as six
+from lib.six import six as six
 
 from lib.apscheduler.events import JobExecutionEvent, EVENT_JOB_MISSED, EVENT_JOB_ERROR, EVENT_JOB_EXECUTED
 
