@@ -1,7 +1,6 @@
 import os, sys, time, cherrypy, threading, locale
-from lib.configobj import ConfigObj
-
 import cherrystrap
+from lib.configobj.configobj import ConfigObj
 from cherrystrap import webStart, logger
 
 def main():
@@ -109,7 +108,6 @@ def main():
         logger.info('Starting cherrystrap on forced port: %s' % HTTP_PORT)
     else:
         HTTP_PORT = int(cherrystrap.HTTP_PORT)
-        logger.info('Starting cherrystrap on port: %s' % cherrystrap.HTTP_PORT)
 
     if cherrystrap.DAEMON:
         cherrystrap.daemonize()
@@ -124,7 +122,7 @@ def main():
                 "module to enable HTTPS. HTTPS will be disabled.")
             cherrystrap.HTTPS_ENABLED = False
 
-    # Try to start the server. 
+    # Try to start the server.
     webStart.initialize({
                     'http_port': HTTP_PORT,
                     'http_host': cherrystrap.HTTP_HOST,
@@ -133,7 +131,8 @@ def main():
                     'http_pass': cherrystrap.HTTP_PASS,
                     'https_enabled': cherrystrap.HTTPS_ENABLED,
                     'https_key': cherrystrap.HTTPS_KEY,
-                    'https_cert': cherrystrap.HTTPS_CERT
+                    'https_cert': cherrystrap.HTTPS_CERT,
+                    'verify_ssl': cherrystrap.VERIFY_SSL
             })
 
     if cherrystrap.LAUNCH_BROWSER and not options.nolaunch:

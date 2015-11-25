@@ -1,15 +1,19 @@
+"""
+This file deals primarily with initializing, writing, and connecting
+to services needed by the web application at runtime
+(e.g. sqlite3, apscheduler, config.ini file) and also contains
+runtime commands like daemonizing, restarting, and shutting down the web app.
+"""
+
 from __future__ import with_statement
 
-import os, sys, subprocess, threading, cherrypy, webbrowser, sqlite3
+import os, sys, subprocess, threading, cherrypy, sqlite3, datetime, uuid
 
-import datetime
-
-from lib.configobj import ConfigObj
-from lib.apscheduler.scheduler import Scheduler
-
-import threading
-
-from cherrystrap import logger
+from lib.configobj.configobj import ConfigObj
+from lib.apscheduler.schedulers.background import BackgroundScheduler
+from lib.apscheduler.triggers.interval import IntervalTrigger
+from lib.apscheduler.triggers.cron import CronTrigger
+from cherrystrap import logger, formatter
 
 FULL_PATH = None
 PROG_DIR = None
@@ -23,14 +27,13 @@ PIDFILE = None
 
 SYS_ENCODING = None
 
-SCHED = Scheduler()
+SCHED = BackgroundScheduler()
 
 INIT_LOCK = threading.Lock()
 __INITIALIZED__ = False
-started = False
 
 DATADIR = None
-DBFILE=None
+DBFILE = None
 CONFIGFILE = None
 CFG = None
 
@@ -44,12 +47,13 @@ HTTP_USER = None
 HTTP_PASS = None
 HTTP_ROOT = None
 HTTP_LOOK = None
+VERIFY_SSL = True
+API_TOKEN = None
 LAUNCH_BROWSER = False
 
 HTTPS_ENABLED = False
 HTTPS_KEY = 'keys/server.key'
 HTTPS_CERT = 'keys/server.crt'
-
 
 def CheckSection(sec):
     """ Check if INI section exists, if not create it """
@@ -59,21 +63,6 @@ def CheckSection(sec):
     except:
         CFG[sec] = {}
         return False
-
-#################################################################################
-## Check_setting_int                                                            #
-#################################################################################
-#def minimax(val, low, high):
-#    """ Return value forced within range """
-#    try:
-#        val = int(val)
-#    except:
-#        val = 0
-#    if val < low:
-#        return low
-#    if val > high:
-#        return high
-#    return val
 
 ################################################################################
 # Check_setting_int                                                            #
@@ -90,22 +79,6 @@ def check_setting_int(config, cfg_name, item_name, def_val):
             config[cfg_name][item_name] = my_val
     logger.debug(item_name + " -> " + str(my_val))
     return my_val
-
-#################################################################################
-## Check_setting_float                                                          #
-#################################################################################
-##def check_setting_float(config, cfg_name, item_name, def_val):
-##    try:
-##        my_val = float(config[cfg_name][item_name])
-##    except:
-##        my_val = def_val
-##        try:
-##            config[cfg_name][item_name] = my_val
-##        except:
-##            config[cfg_name] = {}
-##            config[cfg_name][item_name] = my_val
-
-##    return my_val
 
 ################################################################################
 # Check_setting_str                                                            #
@@ -132,8 +105,10 @@ def initialize():
 
     with INIT_LOCK:
 
-        global __INITIALIZED__, FULL_PATH, PROG_DIR, LOGLEVEL, DAEMON, DATADIR, CONFIGFILE, CFG, LOGDIR, SERVER_NAME, HTTP_HOST, HTTP_PORT, HTTP_USER, HTTP_PASS, HTTP_ROOT, HTTP_LOOK, LAUNCH_BROWSER, \
-        HTTPS_ENABLED, HTTPS_KEY, HTTPS_CERT
+        global __INITIALIZED__, FULL_PATH, PROG_DIR, LOGLEVEL, DAEMON, \
+        DATADIR, CONFIGFILE, CFG, LOGDIR, SERVER_NAME, HTTP_HOST, HTTP_PORT, \
+        HTTP_USER, HTTP_PASS, HTTP_ROOT, HTTP_LOOK, VERIFY_SSL, \
+        LAUNCH_BROWSER, HTTPS_ENABLED, HTTPS_KEY, HTTPS_CERT, API_TOKEN
 
         if __INITIALIZED__:
             return False
@@ -156,11 +131,12 @@ def initialize():
         HTTP_USER = check_setting_str(CFG, 'General', 'http_user', '')
         HTTP_PASS = check_setting_str(CFG, 'General', 'http_pass', '')
         HTTP_ROOT = check_setting_str(CFG, 'General', 'http_root', '')
-        HTTP_LOOK = check_setting_str(CFG, 'General', 'http_look', 'default')
+        HTTP_LOOK = check_setting_str(CFG, 'General', 'http_look', 'bootstrap')
+        VERIFY_SSL = bool(check_setting_int(CFG, 'General', 'verify_ssl', 1))
+        API_TOKEN = check_setting_str(CFG, 'General', 'api_token', uuid.uuid4().hex)
         LAUNCH_BROWSER = bool(check_setting_int(CFG, 'General', 'launch_browser', 0))
         LOGDIR = check_setting_str(CFG, 'General', 'logdir', '')
 
- 
         if not LOGDIR:
             LOGDIR = os.path.join(DATADIR, 'Logs')
 
@@ -204,8 +180,7 @@ def daemonize():
         if pid != 0:
             sys.exit(0)
     except OSError, e:
-        raise RuntimeError("1st fork failed: %s [%d]" %
-                   (e.strerror, e.errno))
+        raise RuntimeError("1st fork failed: %s [%d]" % (e.strerror, e.errno))
 
     os.setsid() #@UndefinedVariable - only available in UNIX
 
@@ -219,8 +194,7 @@ def daemonize():
         if pid != 0:
             sys.exit(0)
     except OSError, e:
-        raise RuntimeError("2st fork failed: %s [%d]" %
-                   (e.strerror, e.errno))
+        raise RuntimeError("2st fork failed: %s [%d]" % (e.strerror, e.errno))
 
     dev_null = file('/dev/null', 'r')
     os.dup2(dev_null.fileno(), sys.stdin.fileno())
@@ -240,6 +214,7 @@ def launch_browser(host, port, root):
         protocol = 'http'
 
     try:
+        import webbrowser
         webbrowser.open('%s://%s:%i%s' % (protocol, host, port, root))
     except Exception, e:
         logger.error('Could not launch browser: %s' % e)
@@ -259,6 +234,8 @@ def config_write():
     new_config['General']['http_pass'] = HTTP_PASS
     new_config['General']['http_root'] = HTTP_ROOT
     new_config['General']['http_look'] = HTTP_LOOK
+    new_config['General']['verify_ssl'] = int(VERIFY_SSL)
+    new_config['General']['api_token'] = API_TOKEN
     new_config['General']['launch_browser'] = int(LAUNCH_BROWSER)
     new_config['General']['logdir'] = LOGDIR
 
@@ -266,45 +243,56 @@ def config_write():
 
 def dbcheck():
 
-    conn=sqlite3.connect(DBFILE)
-    c=conn.cursor()
-    #c.execute('CREATE TABLE IF NOT EXISTS logpaths (Program TEXT, LogPath TEXT)')
+    conn = sqlite3.connect(DBFILE)
+    c = conn.cursor()
+    # Create and modify your database here
+
+    # c.execute('CREATE TABLE IF NOT EXISTS authors (AuthorID TEXT, AuthorName TEXT UNIQUE, AuthorImg TEXT, AuthorLink TEXT, DateAdded TEXT, Status TEXT, LastBook TEXT, LastLink Text, LastDate TEXT, HaveBooks INTEGER, TotalBooks INTEGER, AuthorBorn TEXT, AuthorDeath TEXT, UnignoredBooks INTEGER)')
+    # try:
+    #     c.execute('SELECT UnignoredBooks from authors')
+    #     logger.info('Updating database to hold UnignoredBooks')
+    # except sqlite3.OperationalError:
+    #     logger.error('Could not create column Unignored Books in table authors')
+    #     c.execute('ALTER TABLE authors ADD COLUMN UnignoredBooks INTEGER')
 
     conn.commit()
     c.close()
 
 def start():
-    global __INITIALIZED__, started
+    global __INITIALIZED__, scheduler_started
 
     if __INITIALIZED__:
-
-        # Crons and scheduled jobs go here
-        starttime = datetime.datetime.now()
-        #SCHED.add_interval_job(generator.generateTweet, hours=NOTIFICATION_FREQUENCY)
-
-        SCHED.start()
-#        for job in SCHED.get_jobs():
-#            print job
-        started = True
+        try:
+            # Crons and scheduled jobs go here
+            # testInterval = IntervalTrigger(weeks=0, days=0, hours=0, minutes=2, seconds=0, start_date=None, end_date=None, timezone=None)
+            # testCron = CronTrigger(year=None, month=None, day=None, week=None, day_of_week=None, hour=None, minute='*/2', second=None, start_date=None, end_date=None, timezone=None)
+            # SCHED.add_job(formatter.schedulerTest, testCron)
+            SCHED.start()
+            scheduler_started = True
+        except Exception, e:
+            logger.error("Can't start scheduled job(s): %s" % e)
 
 def shutdown(restart=False):
     config_write()
-    logger.info('cherrystrap is shutting down ...')
+    logger.info('CherryStrap is shutting down ...')
     cherrypy.engine.exit()
 
-    SCHED.shutdown(wait=True)
+    try:
+        SCHED.shutdown(wait=True)
+    except Exception, e:
+        logger.error("Can't shutdown scheduler: %s" % e)
 
-    if PIDFILE :
+    if PIDFILE:
         logger.info('Removing pidfile %s' % PIDFILE)
         os.remove(PIDFILE)
 
     if restart:
-        logger.info('cherrystrap is restarting ...')
+        logger.info('CherryStrap is restarting ...')
         popen_list = [sys.executable, FULL_PATH]
         popen_list += ARGS
         if '--nolaunch' not in popen_list:
             popen_list += ['--nolaunch']
-            logger.info('Restarting cherrystrap with ' + str(popen_list))
+            logger.info('Restarting CherryStrap with ' + str(popen_list))
         subprocess.Popen(popen_list, cwd=os.getcwd())
 
     os._exit(0)

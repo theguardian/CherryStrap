@@ -54,15 +54,14 @@ def setup_server():
 
     root = Root()
 
-
     cherrypy.config.update({'log.error_file': error_log,
                             'log.access_file': access_log,
                             })
     cherrypy.tree.mount(root)
 
 
-
 from cherrypy.test import helper, logtest
+
 
 class AccessLogTests(helper.CPWebCase, logtest.LogCase):
     setup_server = staticmethod(setup_server)
@@ -105,6 +104,26 @@ class AccessLogTests(helper.CPWebCase, logtest.LogCase):
         else:
             self.assertLog(-1, '] "GET %s/as_yield HTTP/1.1" 200 - "" ""'
                            % self.prefix())
+
+    def testCustomLogFormat(self):
+        '''Test a customized access_log_format string,
+           which is a feature of _cplogging.LogManager.access() '''
+
+        original_logformat = cherrypy._cplogging.LogManager.access_log_format
+        cherrypy._cplogging.LogManager.access_log_format = \
+          '{h} {l} {u} {t} "{r}" {s} {b} "{f}" "{a}" {o}' \
+          if py3k else \
+          '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s" %(o)s'
+
+        self.markLog()
+        self.getPage("/as_string", headers=[('Referer', 'REFERER'),
+                                            ('User-Agent', 'USERAGENT'),
+                                            ('Host', 'HOST')])
+        self.assertLog(-1, '%s - - [' % self.interface())
+        self.assertLog(-1, '] "GET /as_string HTTP/1.1" '
+                           '200 7 "REFERER" "USERAGENT" HOST')
+
+        cherrypy._cplogging.LogManager.access_log_format = original_logformat
 
     def testEscapedOutput(self):
         # Test unicode in access log pieces.
@@ -154,4 +173,3 @@ class ErrorLogTests(helper.CPWebCase, logtest.LogCase):
             self.assertLog(-3, 'raise ValueError()')
         finally:
             ignore.pop()
-

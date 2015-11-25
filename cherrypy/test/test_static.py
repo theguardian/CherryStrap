@@ -1,11 +1,17 @@
+import os
+import sys
+
 from cherrypy._cpcompat import HTTPConnection, HTTPSConnection, ntob
 from cherrypy._cpcompat import BytesIO
 
-import os
 curdir = os.path.join(os.getcwd(), os.path.dirname(__file__))
 has_space_filepath = os.path.join(curdir, 'static', 'has space.html')
 bigfile_filepath = os.path.join(curdir, "static", "bigfile.log")
-BIGFILE_SIZE = 1024 * 1024
+
+# The file size needs to be big enough such that half the size of it
+# won't be socket-buffered (or server-buffered) all in one go. See
+# test_file_stream.
+BIGFILE_SIZE = 1024 * 1024 * 4
 
 import cherrypy
 from cherrypy.lib import static
@@ -17,7 +23,8 @@ class StaticTest(helper.CPWebCase):
     def setup_server():
         if not os.path.exists(has_space_filepath):
             open(has_space_filepath, 'wb').write(ntob('Hello, world\r\n'))
-        if not os.path.exists(bigfile_filepath):
+        if not os.path.exists(bigfile_filepath) or \
+            os.path.getsize(bigfile_filepath) != BIGFILE_SIZE:
             open(bigfile_filepath, 'wb').write(ntob("x" * BIGFILE_SIZE))
 
         class Root:
@@ -55,7 +62,6 @@ class StaticTest(helper.CPWebCase):
                 return "This is a DYNAMIC page"
             dynamic.exposed = True
 
-
         root = Root()
         root.static = Static()
 
@@ -79,7 +85,13 @@ class StaticTest(helper.CPWebCase):
                 'tools.staticdir.on': True,
                 'request.show_tracebacks': True,
             },
+            '/404test': {
+                'tools.staticdir.on': True,
+                'tools.staticdir.root': curdir,
+                'tools.staticdir.dir': 'static',
+                'error_page.404': error_page_404,
             }
+        }
         rootApp = cherrypy.Application(root)
         rootApp.merge(rootconf)
 
@@ -89,15 +101,14 @@ class StaticTest(helper.CPWebCase):
                 'tools.staticdir.on': True,
                 'tools.staticdir.root': curdir,
                 'tools.staticdir.dir': 'static',
-                },
-            }
+            },
+        }
         testApp = cherrypy.Application(Static())
         testApp.merge(test_app_conf)
 
         vhost = cherrypy._cpwsgi.VirtualHost(rootApp, {'virt.net': testApp})
         cherrypy.tree.graft(vhost)
     setup_server = staticmethod(setup_server)
-
 
     def teardown_server():
         for f in (has_space_filepath, bigfile_filepath):
@@ -107,7 +118,6 @@ class StaticTest(helper.CPWebCase):
                 except:
                     pass
     teardown_server = staticmethod(teardown_server)
-
 
     def testStatic(self):
         self.getPage("/static/index.html")
@@ -157,15 +167,20 @@ class StaticTest(helper.CPWebCase):
         self.getPage("/docroot")
         self.assertStatus(301)
         self.assertHeader('Location', '%s/docroot/' % self.base())
-        self.assertMatchesBody("This resource .* <a href='%s/docroot/'>"
+        self.assertMatchesBody("This resource .* <a href=(['\"])%s/docroot/\\1>"
                                "%s/docroot/</a>." % (self.base(), self.base()))
 
     def test_config_errors(self):
         # Check that we get an error if no .file or .dir
         self.getPage("/error/thing.html")
         self.assertErrorPage(500)
-        self.assertMatchesBody(ntob("TypeError: staticdir\(\) takes at least 2 "
-                                    "(positional )?arguments \(0 given\)"))
+        if sys.version_info >= (3, 3):
+            errmsg = ntob("TypeError: staticdir\(\) missing 2 "
+                          "required positional arguments")
+        else:
+            errmsg = ntob("TypeError: staticdir\(\) takes at least 2 "
+                          "(positional )?arguments \(0 given\)")
+        self.assertMatchesBody(errmsg)
 
     def test_security(self):
         # Test up-level security
@@ -246,22 +261,38 @@ class StaticTest(helper.CPWebCase):
             else:
                 tell_position = int(b)
 
-            expected = len(body)
+            read_so_far = len(body)
+
+            # It is difficult for us to force the server to only read
+            # the bytes that we ask for - there are going to be buffers
+            # inbetween.
+            #
+            # CherryPy will attempt to write as much data as it can to
+            # the socket, and we don't have a way to determine what that
+            # size will be. So we make the following assumption - by
+            # the time we have read in the entire file on the server,
+            # we will have at least received half of it. If this is not
+            # the case, then this is an indicator that either:
+            #   - machines that are running this test are using buffer
+            #     sizes greater than half of BIGFILE_SIZE; or
+            #   - streaming is broken.
+            #
+            # At the time of writing, we seem to have encountered
+            # buffer sizes bigger than 512K, so we've increased
+            # BIGFILE_SIZE to 4MB.
             if tell_position >= BIGFILE_SIZE:
-                # We can't exactly control how much content the server asks for.
-                # Fudge it by only checking the first half of the reads.
-                if expected < (BIGFILE_SIZE / 2):
+                if read_so_far < (BIGFILE_SIZE / 2):
                     self.fail(
-                        "The file should have advanced to position %r, but has "
-                        "already advanced to the end of the file. It may not be "
-                        "streamed as intended, or at the wrong chunk size (64k)" %
-                        expected)
-            elif tell_position < expected:
+                        "The file should have advanced to position %r, but "
+                        "has already advanced to the end of the file. It "
+                        "may not be streamed as intended, or at the wrong "
+                        "chunk size (64k)" % read_so_far)
+            elif tell_position < read_so_far:
                 self.fail(
                     "The file should have advanced to position %r, but has "
                     "only advanced to position %r. It may not be streamed "
-                    "as intended, or at the wrong chunk size (65536)" %
-                    (expected, tell_position))
+                    "as intended, or at the wrong chunk size (64k)" %
+                    (read_so_far, tell_position))
 
         if body != ntob("x" * BIGFILE_SIZE):
             self.fail("Body != 'x' * %d. Got %r instead (%d bytes)." %
@@ -296,3 +327,13 @@ class StaticTest(helper.CPWebCase):
         if self.body != ntob("x" * BIGFILE_SIZE):
             self.fail("Body != 'x' * %d. Got %r instead (%d bytes)." %
                       (BIGFILE_SIZE, self.body[:50], len(body)))
+
+    def test_error_page_with_serve_file(self):
+        self.getPage("/404test/yunyeen")
+        self.assertStatus(404)
+        self.assertInBody("I couldn't find that thing")
+
+def error_page_404(status, message, traceback, version):
+    import os.path
+    return static.serve_file(os.path.join(curdir, 'static', '404.html'),
+        content_type='text/html')

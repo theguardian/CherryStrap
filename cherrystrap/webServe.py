@@ -1,9 +1,9 @@
-import os, cherrypy, urllib
+import os, cherrypy, urllib, collections
+from cherrypy import _cperror
 from lib import simplejson as json
-
-from mako.template import Template
-from mako.lookup import TemplateLookup
-from mako import exceptions
+from lib.passlib.hash import sha256_crypt
+from auth import AuthController, require, member_of, name_is
+from templating import serve_template
 
 import threading, time
 
@@ -12,28 +12,35 @@ import cherrystrap
 from cherrystrap import logger, formatter, database
 from cherrystrap.formatter import checked
 
-def serve_template(templatename, **kwargs):
-
-    interface_dir = os.path.join(str(cherrystrap.PROG_DIR), 'data/interfaces/')
-    template_dir = os.path.join(str(interface_dir), cherrystrap.HTTP_LOOK)
-
-    _hplookup = TemplateLookup(directories=[template_dir])
-
-    try:
-        template = _hplookup.get_template(templatename)
-        return template.render(**kwargs)
-    except:
-        return exceptions.html_error_template().render()
-
+SESSION_KEY = '_cp_username'
 
 class WebInterface(object):
+
+    def error_page_404(status, message, traceback, version):
+        status_msg = "%s - %s" % (status, message)
+        return serve_template(templatename="index.html", title="404 - Page Not Found", msg=status_msg)
+    cherrypy.config.update({'error_page.404': error_page_404})
+
+    def handle_error():
+        cherrypy.response.status = 500
+        logger.error("500 Error: %s" % _cperror.format_exc())
+        cherrypy.response.body = ["<html><body>Sorry, an error occured</body></html>"]
+
+    _cp_config = {
+        'tools.sessions.on': True,
+        'tools.auth.on': True,
+        'error_page.404': error_page_404,
+        'request.error_response': handle_error
+    }
+
+    auth = AuthController()
 
     def index(self):
         return serve_template(templatename="index.html", title="Home")
     index.exposed=True
 
     def config(self):
-        http_look_dir = os.path.join(cherrystrap.PROG_DIR, 'data/interfaces/')
+        http_look_dir = os.path.join(cherrystrap.PROG_DIR, 'static/interfaces/')
         http_look_list = [ name for name in os.listdir(http_look_dir) if os.path.isdir(os.path.join(http_look_dir, name)) ]
 
         config = {
@@ -47,14 +54,16 @@ class WebInterface(object):
                     "http_pass":        cherrystrap.HTTP_PASS,
                     "http_look":        cherrystrap.HTTP_LOOK,
                     "http_look_list":   http_look_list,
+                    "verify_ssl":       checked(cherrystrap.VERIFY_SSL),
+                    "api_token":        cherrystrap.API_TOKEN,
                     "launch_browser":   checked(cherrystrap.LAUNCH_BROWSER),
                     "logdir":           cherrystrap.LOGDIR
                 }
-        return serve_template(templatename="config.html", title="Settings", config=config)    
+        return serve_template(templatename="config.html", title="Settings", config=config)
     config.exposed = True
 
-    def configUpdate(self, server_name="Server", http_host='0.0.0.0', http_user=None, http_port=7889, http_pass=None, http_look=None, launch_browser=0, logdir=None, 
-        https_enabled=0, https_key=None, https_cert=None):
+    def configUpdate(self, server_name="Server", http_host='0.0.0.0', http_user=None, http_port=7889, http_pass=None, http_look=None, launch_browser=0, logdir=None,
+        https_enabled=0, https_key=None, https_cert=None, verify_ssl=0):
 
         cherrystrap.SERVER_NAME = server_name
         cherrystrap.HTTP_HOST = http_host
@@ -63,8 +72,12 @@ class WebInterface(object):
         cherrystrap.HTTPS_KEY = https_key
         cherrystrap.HTTPS_CERT = https_cert
         cherrystrap.HTTP_USER = http_user
-        cherrystrap.HTTP_PASS = http_pass
+        if http_pass != cherrystrap.HTTP_PASS:
+            cherrystrap.HTTP_PASS = sha256_crypt.encrypt(http_pass)
+        else:
+            cherrystrap.HTTP_PASS = cherrystrap.HTTP_PASS
         cherrystrap.HTTP_LOOK = http_look
+        cherrystrap.VERIFY_SSL = verify_ssl
         cherrystrap.LAUNCH_BROWSER = launch_browser
         cherrystrap.LOGDIR = logdir
 

@@ -1,3 +1,5 @@
-version_info = (2, 0, 0, 'rc', 2)
-version = '.'.join(str(n) for n in version_info[:3])
-release = version + ''.join(str(n) for n in version_info[3:])
+version_info = (3, 0, 4)
+version = '3.0.4'
+release = '3.0.4'
+
+__version__ = release  # PEP 396

@@ -1,5 +1,5 @@
 # mako/util.py
-# Copyright (C) 2006-2013 the Mako authors and contributors <see AUTHORS file>
+# Copyright (C) 2006-2015 the Mako authors and contributors <see AUTHORS file>
 #
 # This module is part of Mako and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -11,18 +11,15 @@ import os
 from mako import compat
 import operator
 
-def function_named(fn, name):
-    """Return a function with a given __name__.
 
-    Will assign to __name__ and return the original function if possible on
-    the Python implementation, otherwise a new function will be constructed.
-
-    """
-    fn.__name__ = name
-    return fn
+def update_wrapper(decorated, fn):
+    decorated.__wrapped__ = fn
+    decorated.__name__ = fn.__name__
+    return decorated
 
 
 class PluginLoader(object):
+
     def __init__(self, group):
         self.group = group
         self.impls = {}
@@ -33,15 +30,15 @@ class PluginLoader(object):
         else:
             import pkg_resources
             for impl in pkg_resources.iter_entry_points(
-                                self.group,
-                                name):
+                    self.group,
+                    name):
                 self.impls[name] = impl.load
                 return impl.load()
             else:
                 from mako import exceptions
                 raise exceptions.RuntimeException(
-                        "Can't load plugin %s %s" %
-                        (self.group, name))
+                    "Can't load plugin %s %s" %
+                    (self.group, name))
 
     def register(self, name, modulepath, objname):
         def load():
@@ -50,6 +47,7 @@ class PluginLoader(object):
                 mod = getattr(mod, token)
             return getattr(mod, objname)
         self.impls[name] = load
+
 
 def verify_directory(dir):
     """create and/or verify a filesystem directory."""
@@ -64,6 +62,7 @@ def verify_directory(dir):
             if tries > 5:
                 raise
 
+
 def to_list(x, default=None):
     if x is None:
         return default
@@ -74,7 +73,9 @@ def to_list(x, default=None):
 
 
 class memoized_property(object):
+
     """A read-only @property that is only evaluated once."""
+
     def __init__(self, fget, doc=None):
         self.fget = fget
         self.__doc__ = doc or fget.__doc__
@@ -86,7 +87,9 @@ class memoized_property(object):
         obj.__dict__[self.__name__] = result = self.fget(obj)
         return result
 
+
 class memoized_instancemethod(object):
+
     """Decorate a method memoize its return value.
 
     Best applied to no-arg methods: memoization is not sensitive to
@@ -94,6 +97,7 @@ class memoized_instancemethod(object):
     called with different arguments.
 
     """
+
     def __init__(self, fget, doc=None):
         self.fget = fget
         self.__doc__ = doc or fget.__doc__
@@ -102,6 +106,7 @@ class memoized_instancemethod(object):
     def __get__(self, obj, cls):
         if obj is None:
             return self
+
         def oneshot(*args, **kw):
             result = self.fget(obj, *args, **kw)
             memo = lambda *a, **kw: result
@@ -113,8 +118,11 @@ class memoized_instancemethod(object):
         oneshot.__doc__ = self.__doc__
         return oneshot
 
+
 class SetLikeDict(dict):
+
     """a dictionary that has some setlike methods on it"""
+
     def union(self, other):
         """produce a 'union' of this dict and another (at the key level).
 
@@ -123,7 +131,9 @@ class SetLikeDict(dict):
         x.update(other)
         return x
 
+
 class FastEncodingBuffer(object):
+
     """a very rudimentary buffer that is faster than StringIO,
     but doesn't crash on unicode data like cStringIO."""
 
@@ -149,7 +159,9 @@ class FastEncodingBuffer(object):
         else:
             return self.delim.join(self.data)
 
+
 class LRUCache(dict):
+
     """A dictionary-like object that stores a limited number of items,
     discarding lesser used items periodically.
 
@@ -159,10 +171,12 @@ class LRUCache(dict):
     """
 
     class _Item(object):
+
         def __init__(self, key, value):
             self.key = key
             self.value = value
             self.timestamp = compat.time_func()
+
         def __repr__(self):
             return repr(self.value)
 
@@ -211,6 +225,7 @@ _PYTHON_MAGIC_COMMENT_re = re.compile(
     r'[ \t\f]* \# .* coding[=:][ \t]*([-\w.]+)',
     re.VERBOSE)
 
+
 def parse_encoding(fp):
     """Deduce the encoding of a Python source file (binary mode) from magic
     comment.
@@ -243,12 +258,13 @@ def parse_encoding(fp):
             else:
                 line2 = fp.readline()
                 m = _PYTHON_MAGIC_COMMENT_re.match(
-                                               line2.decode('ascii', 'ignore'))
+                    line2.decode('ascii', 'ignore'))
 
         if has_bom:
             if m:
-                raise SyntaxError("python refuses to compile code with both a UTF8" \
-                      " byte-order-mark and a magic encoding comment")
+                raise SyntaxError(
+                    "python refuses to compile code with both a UTF8"
+                    " byte-order-mark and a magic encoding comment")
             return 'utf_8'
         elif m:
             return m.group(1)
@@ -256,6 +272,7 @@ def parse_encoding(fp):
             return None
     finally:
         fp.seek(pos)
+
 
 def sorted_dict_repr(d):
     """repr() a dictionary with the keys in order.
@@ -266,6 +283,7 @@ def sorted_dict_repr(d):
     keys = list(d.keys())
     keys.sort()
     return "{" + ", ".join(["%r: %r" % (k, d[k]) for k in keys]) + "}"
+
 
 def restore__ast(_ast):
     """Attempt to restore the required classes to the _ast module if it
@@ -343,7 +361,6 @@ mako in baz not in mako""", '<unknown>', 'exec', _ast.PyCF_ONLY_AST)
     _ast.NotIn = type(m.body[12].value.ops[1])
 
 
-
 def read_file(path, mode='rb'):
     fp = open(path, mode)
     try:
@@ -351,6 +368,7 @@ def read_file(path, mode='rb'):
         return data
     finally:
         fp.close()
+
 
 def read_python_file(path):
     fp = open(path, "rb")
@@ -362,4 +380,3 @@ def read_python_file(path):
         return data
     finally:
         fp.close()
-

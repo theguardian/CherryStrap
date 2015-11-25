@@ -1,6 +1,11 @@
 import time, datetime
 from time import strptime
 
+def schedulerTest():
+    now = datetime.datetime.now()
+    print "Scheduled Job completed at "+now.strftime("%Y-%m-%d %H:%M:%S")
+    return now.strftime("%Y-%m-%d %H:%M:%S")
+
 def now():
     now = datetime.datetime.now()
     return now.strftime("%Y-%m-%d %H:%M:%S")
