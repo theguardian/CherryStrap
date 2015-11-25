@@ -26,7 +26,7 @@ __all__ = [
 import sys, datetime, os.path, gettext
 
 try:
-    from pkg_resources import resource_stream
+    from lib.pkg_resources import resource_stream
 except ImportError:
     resource_stream = None
 

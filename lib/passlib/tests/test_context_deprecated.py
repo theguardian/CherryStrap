@@ -18,7 +18,7 @@ import warnings
 import sys
 # site
 try:
-    from pkg_resources import resource_filename
+    from lib.pkg_resources import resource_filename
 except ImportError:
     resource_filename = None
 # pkg

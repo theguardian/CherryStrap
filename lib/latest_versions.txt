@@ -5,6 +5,7 @@ apscheduler = 3.0.4
 - futures = 3.0.3
 configobj = 5.0.6
 passlib = 1.6.5
+pkg_resources (from setuptools) = 18.6.1
 simplejson = 3.8.1
 six = 1.10.0
 
