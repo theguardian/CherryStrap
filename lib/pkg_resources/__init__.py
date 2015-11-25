@@ -91,7 +91,7 @@ try:
 except ImportError:
     # fallback to naturally-installed version; allows system packagers to
     #  omit vendored packages.
-    import packaging.version
+    import lib.pkg_resources.packaging.version
     import packaging.specifiers
 
 
