@@ -21,7 +21,7 @@ Encoding basic Python object hierarchies::
     "\\"
     >>> print(json.dumps({"c": 0, "b": 0, "a": 0}, sort_keys=True))
     {"a": 0, "b": 0, "c": 0}
-    >>> from simplejson.compat import StringIO
+    >>> from lib.simplejson.compat import StringIO
     >>> io = StringIO()
     >>> json.dump(['streaming API'], io)
     >>> io.getvalue()
@@ -51,7 +51,7 @@ Decoding JSON::
     True
     >>> json.loads('"\\"foo\\bar"') == u'"foo\x08ar'
     True
-    >>> from simplejson.compat import StringIO
+    >>> from lib.simplejson.compat import StringIO
     >>> io = StringIO('["streaming API"]')
     >>> json.load(io)[0] == 'streaming API'
     True

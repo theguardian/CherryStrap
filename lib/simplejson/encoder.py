@@ -14,7 +14,7 @@ def _import_speedups():
         return None, None
 c_encode_basestring_ascii, c_make_encoder = _import_speedups()
 
-from simplejson.decoder import PosInf
+from lib.simplejson.decoder import PosInf
 
 #ESCAPE = re.compile(ur'[\x00-\x1f\\"\b\f\n\r\t\u2028\u2029]')
 # This is required because u() will mangle the string and ur'' isn't valid
@@ -254,7 +254,7 @@ class JSONEncoder(object):
     def encode(self, o):
         """Return a JSON string representation of a Python data structure.
 
-        >>> from simplejson import JSONEncoder
+        >>> from lib.simplejson import JSONEncoder
         >>> JSONEncoder().encode({"foo": ["bar", "baz"]})
         '{"foo": ["bar", "baz"]}'
 

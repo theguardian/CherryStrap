@@ -105,7 +105,7 @@ def _get_localzone(_root='/'):
             start = tzpath.find("/")+1
 
     # No explicit setting existed. Use localtime
-    for filename in ('etc/localtime', 'usr/local/etc/localtime'):
+    for filename in ('etc/localtime', 'usr/local/etc/localtime', '/opt/etc/localtime'):
         tzpath = os.path.join(_root, filename)
 
         if not os.path.exists(tzpath):

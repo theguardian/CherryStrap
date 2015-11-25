@@ -1,8 +1,8 @@
 import math
 from unittest import TestCase
-from simplejson.compat import long_type, text_type
+from lib.simplejson.compat import long_type, text_type
 import simplejson as json
-from simplejson.decoder import NaN, PosInf, NegInf
+from lib.simplejson.decoder import NaN, PosInf, NegInf
 
 class TestFloat(TestCase):
     def test_degenerates_allow(self):

@@ -2,7 +2,7 @@ import sys
 import unittest
 from unittest import TestCase
 
-from simplejson import encoder, scanner
+from lib.simplejson import encoder, scanner
 
 
 def has_speedups():

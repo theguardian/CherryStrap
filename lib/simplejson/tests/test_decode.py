@@ -3,8 +3,8 @@ import decimal
 from unittest import TestCase
 
 import simplejson as json
-from simplejson.compat import StringIO
-from simplejson import OrderedDict
+from lib.simplejson.compat import StringIO
+from lib.simplejson import OrderedDict
 
 class TestDecode(TestCase):
     if not hasattr(TestCase, 'assertIs'):

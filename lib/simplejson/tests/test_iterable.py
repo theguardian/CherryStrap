@@ -1,5 +1,5 @@
 import unittest
-from simplejson.compat import StringIO
+from lib.simplejson.compat import StringIO
 
 import simplejson as json
 

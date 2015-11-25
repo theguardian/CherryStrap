@@ -3,7 +3,7 @@ from unittest import TestCase
 
 import simplejson as json
 import simplejson.decoder
-from simplejson.compat import b, PY3
+from lib.simplejson.compat import b, PY3
 
 class TestScanString(TestCase):
     # The bytes type is intentionally not used in most of these tests

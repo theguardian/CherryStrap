@@ -85,9 +85,10 @@ except ImportError:
     pass
 
 try:
-    import pkg_resources._vendor.packaging.version
-    import pkg_resources._vendor.packaging.specifiers
-    packaging = pkg_resources._vendor.packaging
+    import lib.pkg_resources._vendor.packaging.version
+    import lib.pkg_resources._vendor.packaging.specifiers
+    from lib.pkg_resources._vendor import packaging
+    #packaging = lib.pkg_resources._vendor.packaging
 except ImportError:
     # fallback to naturally-installed version; allows system packagers to
     #  omit vendored packages.

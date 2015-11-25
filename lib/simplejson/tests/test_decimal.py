@@ -1,7 +1,7 @@
 import decimal
 from decimal import Decimal
 from unittest import TestCase
-from simplejson.compat import StringIO, reload_module
+from lib.simplejson.compat import StringIO, reload_module
 
 import simplejson as json
 

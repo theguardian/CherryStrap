@@ -1,5 +1,5 @@
 from unittest import TestCase
-from simplejson.compat import StringIO, long_type, b, binary_type, PY3
+from lib.simplejson.compat import StringIO, long_type, b, binary_type, PY3
 import simplejson as json
 
 def as_text_type(s):

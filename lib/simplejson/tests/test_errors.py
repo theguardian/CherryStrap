@@ -2,7 +2,7 @@ import sys, pickle
 from unittest import TestCase
 
 import simplejson as json
-from simplejson.compat import u, b
+from lib.simplejson.compat import u, b
 
 class TestErrors(TestCase):
     def test_string_keys_error(self):

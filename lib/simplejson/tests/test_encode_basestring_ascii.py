@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 import simplejson.encoder
-from simplejson.compat import b
+from lib.simplejson.compat import b
 
 CASES = [
     (u'/\\"\ucafe\ubabe\uab98\ufcde\ubcda\uef4a\x08\x0c\n\r\t`1~!@#$%^&*()_+-=[]{}|;:\',./<>?', '"/\\\\\\"\\ucafe\\ubabe\\uab98\\ufcde\\ubcda\\uef4a\\b\\f\\n\\r\\t`1~!@#$%^&*()_+-=[]{}|;:\',./<>?"'),
