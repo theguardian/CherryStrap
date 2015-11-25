@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
 from lib.tzlocal import get_localzone
-from lib.six import six as six
+from lib.six import six
 
 from lib.apscheduler.triggers.base import BaseTrigger
 from lib.apscheduler.triggers.cron.fields import BaseField, WeekField, DayOfMonthField, DayOfWeekField, DEFAULT_VALUES

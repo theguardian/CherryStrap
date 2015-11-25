@@ -5,7 +5,7 @@ import unittest
 
 import py
 
-from lib.six import six as six
+from lib.six import six
 
 
 def test_add_doc():

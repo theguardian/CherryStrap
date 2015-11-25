@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 import logging
 
-from lib.six import six as six
+from lib.six import six
 
 
 class JobLookupError(KeyError):
