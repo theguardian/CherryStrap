@@ -1,24 +1,25 @@
 from __future__ import with_statement
 
 import os
-import sqlite3
 import threading
 import time
-import lib.MySQLdb as MySQLdb
 
 import cherrystrap
-
 from cherrystrap import logger, formatter
 
 db_lock = threading.Lock()
 
 def dbFilename(filename="%s.db" % cherrystrap.APP_NAME):
-
     return os.path.join(cherrystrap.DATADIR, filename)
 
 class SQLite_DBConnection:
 
     def __init__(self, filename="%s.db" % cherrystrap.APP_NAME):
+        try:
+            global sqlite3
+            import sqlite3
+        except Exception, e:
+            logger.error("There was an error importing SQLite: %s" % e)
         self.filename = filename
         self.connection = sqlite3.connect(dbFilename(filename), 20)
         self.connection.row_factory = sqlite3.Row
@@ -84,6 +85,11 @@ class SQLite_DBConnection:
 class MySQL_DBConnection:
 
     def __init__(self):
+        try:
+            global MySQLdb
+            import MySQLdb
+        except Exception, e:
+            logger.error("There was an error importing MySQLdb: %s" % e)
         host = cherrystrap.MYSQL_HOST
         port = cherrystrap.MYSQL_PORT
         if port:

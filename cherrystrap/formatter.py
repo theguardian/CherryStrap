@@ -1,6 +1,5 @@
 import time, datetime, base64
 from time import strptime
-from lib import MySQLdb
 
 def schedulerTest():
     now = datetime.datetime.now()
@@ -43,10 +42,6 @@ def checked(variable):
         return 'Checked'
     else:
         return ''
-
-def MySQL(string):
-    value = MySQLdb.escape_string(string.encode('UTF-8'))
-    return value
 
 def encode(key, clear):
     enc = []

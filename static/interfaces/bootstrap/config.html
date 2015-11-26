@@ -36,8 +36,8 @@
           <input type="text" name="http_port" value="${config['http_port']}" class="form-control" id="httpPort" placeholder="Broadcast Port">
         </div>
         <div class="col-md-12 form-group">
-          <label for="httpsEnabled">Broadcast SSL</label>
-          <input type="checkbox" name="https_enabled" value=1 ${config['https_enabled']} class="form-control" id="httpsEnabled">
+          <label for="httpsEnabled">&nbsp;Broadcast SSL</label>
+          <input type="checkbox" name="https_enabled" value=1 ${config['https_enabled']} class="checkbox pull-left" id="httpsEnabled">
         </div>
         <div class="col-md-12" id="sslKeyGroup">
           <div class="col-md-6 form-group">
@@ -50,12 +50,12 @@
           </div>
         </div>
         <div class="col-md-6 form-group">
-          <label for="verifySSL">Verify SSL</label>
-          <input type="checkbox" name="verify_ssl" value=1 ${config['verify_ssl']} class="form-control" id="verifySSL">
+          <label for="verifySSL">&nbsp;Verify SSL</label>
+          <input type="checkbox" name="verify_ssl" value=1 ${config['verify_ssl']} class="checkbox pull-left" id="verifySSL">
         </div>
         <div class="col-md-6 form-group">
-          <label for="launchBrowser">Launch Browser</label>
-          <input type="checkbox" name="launch_browser" value=value=1 ${config['launch_browser']} class="form-control" id="launchBrowser">
+          <label for="launchBrowser">&nbsp;Launch Browser</label>
+          <input type="checkbox" name="launch_browser" value=value=1 ${config['launch_browser']} class="checkbox pull-left" id="launchBrowser">
         </div>
       </div>
     </div>
@@ -110,6 +110,12 @@
           </select>
         </div>
         <div class="col-md-12" id="mysqlGroup">
+          <div class="alert alert-danger">
+            <p>Note that both MySQL and MySQL-python need to be installed for this
+            functionality to work.</p>
+            <p>It's recommended to stick with sqlite unless
+            you're absolutely sure you know what you're doing.</p>
+          </div>
           <div class="col-md-6 form-group">
             <label for="mysqlHost">MySQL Address</label>
             <input type="text" name="mysql_host" value="${config['mysql_host']}" class="form-control" id="mysqlHost" placeholder="MySQL Address">

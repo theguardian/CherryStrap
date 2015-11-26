@@ -7,13 +7,12 @@ runtime commands like daemonizing, restarting, and shutting down the web app.
 
 from __future__ import with_statement
 
-import os, sys, subprocess, threading, cherrypy, sqlite3, datetime, uuid
+import os, sys, subprocess, threading, cherrypy, datetime, uuid
 
 from lib.configobj.configobj import ConfigObj
 from lib.apscheduler.schedulers.background import BackgroundScheduler
 from lib.apscheduler.triggers.interval import IntervalTrigger
 from lib.apscheduler.triggers.cron import CronTrigger
-import lib.MySQLdb as MySQLdb
 from cherrystrap import logger, formatter
 
 FULL_PATH = None
@@ -273,6 +272,10 @@ def dbcheck():
     # User should have a choice between sqlite and mysql
 
     if DATABASE_TYPE == "sqlite":
+        try:
+            import sqlite3
+        except Exception, e:
+            logger.warn("SQLite is not installed: %s" % e)
         conn = sqlite3.connect(DBFILE)
         c = conn.cursor()
         # Create and modify your database here
@@ -288,6 +291,10 @@ def dbcheck():
         conn.commit()
         c.close()
     elif DATABASE_TYPE == "mysql":
+        try:
+            import MySQLdb
+        except Exception, e:
+            logger.warn("MySQLdb is not installed: %s" % e)
         # Uncomment this if you have mysql configured and want to create a db
         # try:
         #     conn_ini = MySQLdb.Connection(host=MYSQL_HOST, port=MYSQL_PORT,
