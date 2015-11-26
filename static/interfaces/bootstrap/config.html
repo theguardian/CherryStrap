@@ -153,6 +153,18 @@
     $('#sslKeyGroup')[this.checked ? "show" : "hide"]();
   });
 
+  if($('#dbType').val() == 'sqlite'){
+       $('#mysqlGroup').hide();
+   }
+
+  $('#dbType').change(function(){
+     if($(this).val() == 'sqlite'){
+         $('#mysqlGroup').hide();
+         return true;
+     }
+     $('#mysqlGroup').show();
+  });
+
   $("#config_form").submit(function() {
       $.ajax({
           type: "POST",

@@ -30,18 +30,18 @@
 </head>
 <body>
     <!-- Modal -->
-    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal fade" id="defaultModal" tabindex="-1" role="dialog" aria-labelledby="defaultModalLabel">
       <div class="modal-dialog" role="document">
         <div class="modal-content">
           <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <h4 class="modal-title" id="myModalLabel"></h4>
+            <h4 class="modal-title" id="defaultModalLabel"></h4>
           </div>
           <div class="modal-body">
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary modal-confirm"></button>
+            <button type="button" class="btn btn-default" id="modal-confirm"></button>
           </div>
         </div>
       </div>
@@ -70,9 +70,18 @@
                 <li><a href="/logs">Logs</a></li>
                 <li class="divider"></li>
                 <li class="dropdown-header">Server</li>
-                <li><a href="/restart">Restart</a></li>
-                <li><a href="/shutdown">Shutdown</a></li>
-                <li><a data-toggle="modal" data-target="#myModal" data-uTitle="Configuration" data-uBody="Are you sure you want to configure?" data-uConfirm="Configure">Modal</a></li>
+                <li><a data-toggle="modal" data-target="#defaultModal"
+                  data-utitle="Restart?"
+                  data-ubody="Are you sure you want to restart the server?"
+                  data-uclass="btn btn-danger"
+                  data-ufunction="restartServer()"
+                  data-uconfirm="Restart">Restart</a></li>
+                <li><a data-toggle="modal" data-target="#defaultModal"
+                  data-utitle="Shutdown?"
+                  data-ubody="Are you sure you want to shut down the server?"
+                  data-uclass="btn btn-danger"
+                  data-ufunction="shutdownServer()"
+                  data-uconfirm="Shutdown">Shutdown</a></li>
               </ul>
             </li>
           </ul>
@@ -91,19 +100,28 @@
 	<script src="/js/jquery-2.1.4.min.js"></script>
   <script src="/js/bootstrap.min.js"></script>
   <script>
-    $('#myModal').on('show.bs.modal', function (event) {
-      var clickSource = $(event.relatedTarget)
-      var uTitle = clickSource.data('uTitle')
-      var uBody = clickSource.data('uBody')
-      var uConfirm = clickSource.data('uConfirm')
+    $('#defaultModal').on('show.bs.modal', function (event) {
+      var a = $(event.relatedTarget)
+      var uTitle = a.data('utitle')
+      var uBody = a.data('ubody')
+      var uClass = a.data('uclass')
+      var uConfirm = a.data('uconfirm')
+      var uFunction = a.data('ufunction')
       var modal = $(this)
       modal.find('.modal-title').text(uTitle)
       modal.find('.modal-body').text(uBody)
-      modal.find('.modal-confirm').text(uConfirm)
+      $('#modal-confirm').removeClass('btn btn-default').addClass(uClass)
+      $('#modal-confirm').attr('onclick', uFunction);
+      modal.find('#modal-confirm').text(uConfirm)
     })
-    $('#myModal').on('shown.bs.modal', function () {
-      $('#myInput').focus()
-    })
+
+    function restartServer() {
+      window.location.href = "/restart";
+    }
+
+    function shutdownServer() {
+      window.location.href = "/shutdown";
+    }
   </script>
 	${next.javascriptIncludes()}
 </body>
