@@ -4,93 +4,166 @@
 %>
 
 <%def name="headIncludes()">
-<title>${cherrystrap.SERVER_NAME}: ${title}</title>
+<title>${cherrystrap.APP_NAME}: ${title}</title>
 </%def>
 
 <%def name="body()">
-    <h1>Configuration Options</h1>
-    <form id="config_form">
-        <table class="table table-striped">
-            <tr>
-                <td>Server Name:</td>
-                <td><input type="text" name="server_name" value="${config['server_name']}" size="20" maxlength="40"></td>
-                <td>Log Directory</td>
-                <td><input type="text" name="logdir" value="${config['logdir']}" size="40" maxlength="127"></td>
-            </tr>
-            <tr>
-                <td>Broadcast Address:</td>
-                <td><input type="text" name="http_host" value="${config['http_host']}" size="15" maxlength="15"></td>
-                <td>Broadcast Port:</td>
-                <td><input type="text" name="http_port" value="${config['http_port']}" size="5" maxlength="5"></td>
-            </tr>
-            <tr>
-                <td>Broadcast SSL</td>
-                <td><input type="checkbox" name="https_enabled" value=1 ${config['https_enabled']}></td>
-                <td>Verify SSL</td>
-                <td><input type="checkbox" name="verify_ssl" value=1 ${config['verify_ssl']}></td>
-            </tr>
-            <tr>
-                <td>SSL Key</td>
-                <td><input type="text" name="https_key" value="${config['https_key']}" size="20" maxlength="40"></td>
-                <td>SSL Cert</td>
-                <td><input type="text" name="https_cert" value="${config['https_cert']}" size="20" maxlength="40"></td>
-            </tr>
-            <tr>
-                <td>Username:</td>
-                <td><input type="text" name="http_user" value="${config['http_user']}" size="20" maxlength="40"></td>
-                <td>Password:</td>
-                <td><input type="password" name="http_pass" value="${config['http_pass']}" size="20" maxlength="40"></td>
-            </tr>
-            <tr>
-                <td>Theme:</td>
-                <td>
-                <select name="http_look">
-                %for http_look in config['http_look_list']:
-                    <%
-                        if http_look == cherrystrap.HTTP_LOOK:
-                            selected = 'selected="selected"'
-                        else:
-                            selected = ''
-                    %>
-                    <option value="${http_look}" ${selected}>${http_look}</option>
-                %endfor
-                </select>
-                </td>
-                <td>Launch Browser:</td>
-                <td>
-                    <input type="checkbox" name="launch_browser" value=1 ${config['launch_browser']}>
-                </td>
-            </tr>
-            <tr>
-              <td></td>
-              <td></td>
-              <td>API Token</td>
-              <td>${config['api_token']}</td>
-            </tr>
-        </table>
-        <p align="right"><button type="submit" class="btn btn-primary">Submit</button></p>
-    </form>
+<h1>Configuration Options</h1>
+<ul class="nav nav-tabs" id="configTable">
+    <li><a href="#1" data-toggle="tab">Server</a></li>
+    <li><a href="#2" data-toggle="tab">Interface</a></li>
+    <li><a href="#3" data-toggle="tab">Database</a></li>
+</ul>
+<form id="config_form">
+  <div class="tab-content">
+    <div class="tab-pane" id="1">
+      <br/>
+      <div class="row">
+        <div class="col-md-6 form-group">
+          <label for="appName">App Name</label>
+          <input type="text" name="app_name" value="${config['app_name']}" class="form-control" id="appName" placeholder="App Name">
+        </div>
+        <div class="col-md-6 form-group">
+          <label for="logDirectory">Log Directory</label>
+          <input type="text" name="logdir" value="${config['logdir']}" class="form-control" id="logDirectory" placeholder="Log Directory">
+        </div>
+        <div class="col-md-6 form-group">
+          <label for="httpHost">Broadcast Address</label>
+          <input type="text" name="http_host" value="${config['http_host']}" class="form-control" id="httpHost" placeholder="Broadcast Address">
+        </div>
+        <div class="col-md-6 form-group">
+          <label for="httpPort">Broadcast Port</label>
+          <input type="text" name="http_port" value="${config['http_port']}" class="form-control" id="httpPort" placeholder="Broadcast Port">
+        </div>
+        <div class="col-md-12 form-group">
+          <label for="httpsEnabled">Broadcast SSL</label>
+          <input type="checkbox" name="https_enabled" value=1 ${config['https_enabled']} class="form-control" id="httpsEnabled">
+        </div>
+        <div class="col-md-12" id="sslKeyGroup">
+          <div class="col-md-6 form-group">
+            <label for="sslKey">SSL Key</label>
+            <input type="text" name="https_key" value="${config['https_key']}" class="form-control" id="sslKey" placeholder="SSL Key">
+          </div>
+          <div class="col-md-6 form-group">
+            <label for="sslCert">SSL Cert</label>
+            <input type="text" name="https_cert" value="${config['https_cert']}" class="form-control" id="sslCert" placeholder="SSL Cert">
+          </div>
+        </div>
+        <div class="col-md-6 form-group">
+          <label for="verifySSL">Verify SSL</label>
+          <input type="checkbox" name="verify_ssl" value=1 ${config['verify_ssl']} class="form-control" id="verifySSL">
+        </div>
+        <div class="col-md-6 form-group">
+          <label for="launchBrowser">Launch Browser</label>
+          <input type="checkbox" name="launch_browser" value=value=1 ${config['launch_browser']} class="form-control" id="launchBrowser">
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-pane" id="2">
+      <br/>
+      <div class="row">
+        <div class="col-md-6 form-group">
+          <label for="httpUserame">Username</label>
+          <input type="text" name="http_user" value="${config['http_user']}" class="form-control" id="httpUsername" placeholder="Username">
+        </div>
+        <div class="col-md-6 form-group">
+          <label for="httpPassword">Password</label>
+          <input type="password" name="http_pass" value="${config['http_pass']}" class="form-control" id="httpPassword" placeholder="Password">
+        </div>
+        <div class="col-md-6 form-group">
+          <label for="httpTheme">Theme</label>
+          <select name="http_look" class="form-control" id="httpTheme">
+          %for http_look in config['http_look_list']:
+              <%
+                  if http_look == cherrystrap.HTTP_LOOK:
+                      selected = 'selected="selected"'
+                  else:
+                      selected = ''
+              %>
+              <option value="${http_look}" ${selected}>${http_look}</option>
+          %endfor
+          </select>
+        </div>
+        <div class="col-md-6 form-group">
+          <label for="apiToken">API Token</label>
+          <input type="text" name="api_token" value="${config['api_token']}" class="form-control" id="apiToken" placeholder="API Token" readonly>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-pane" id="3">
+      <br/>
+      <div class="row">
+        <div class="col-md-12 form-group">
+          <label for="dbType">Database Type</label>
+          <select name="database_type" class="form-control" id="dbType">
+            %for database_type in ['sqlite', 'mysql']:
+                <%
+                    if database_type == cherrystrap.DATABASE_TYPE:
+                        selected = 'selected="selected"'
+                    else:
+                        selected = ''
+                %>
+                <option value="${database_type}" ${selected}>${database_type}</option>
+            %endfor
+          </select>
+        </div>
+        <div class="col-md-12" id="mysqlGroup">
+          <div class="col-md-6 form-group">
+            <label for="mysqlHost">MySQL Address</label>
+            <input type="text" name="mysql_host" value="${config['mysql_host']}" class="form-control" id="mysqlHost" placeholder="MySQL Address">
+          </div>
+          <div class="col-md-6 form-group">
+            <label for="mysqlPort">MySQL Port</label>
+            <input type="text" name="mysql_port" value="${config['mysql_port']}" class="form-control" id="mysqlPort" placeholder="MySQL Port">
+          </div>
+          <div class="col-md-6 form-group">
+            <label for="mysqlUserame">MySQL Username</label>
+            <input type="text" name="mysql_user" value="${config['mysql_user']}" class="form-control" id="mysqlUsername" placeholder="MySQL Username">
+          </div>
+          <div class="col-md-6 form-group">
+            <label for="mysqlPassword">MySQL Password</label>
+            <input type="password" name="mysql_pass" value="${config['mysql_pass']}" class="form-control" id="mysqlPassword" placeholder="MySQL Password">
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <button type="submit" class="btn btn-primary pull-right">Save Configuration</button>
+</form>
 </%def>
 
 <%def name="javascriptIncludes()">
 <script>
-    $("#config_form").submit(function() {
-        $.ajax({
-            type: "POST",
-            url: "configUpdate",
-            data: $("#config_form").serialize(),
-            beforeSend: function() {
-                $(".ajaxMsg").html('<div class="alert alert-warning"><img src="images/ajax-loader.gif"></div>').show();
-            },
-            success: function(data)
-            {
-                $(".ajaxMsg").html('<div class="alert alert-success">Configuration Saved Successfully!</div>').show().fadeOut(5000);
-            },
-            error: function(XMLHttpRequest, textStatus, errorThrown) {
-                $(".ajaxMsg").html('<div class="alert alert-danger">'+textStatus+': '+errorThrown+'</div>').show().fadeOut(5000);
-            }
-        });
-        return false;
-    });
+  $('#configTable a:first').tab('show');
+
+  if (!$("#httpsEnabled").is(":checked")) {
+    $('#sslKeyGroup').hide()
+  }
+
+  $('#httpsEnabled').click(function() {
+    $('#sslKeyGroup')[this.checked ? "show" : "hide"]();
+  });
+
+  $("#config_form").submit(function() {
+      $.ajax({
+          type: "POST",
+          url: "configUpdate",
+          data: $("#config_form").serialize(),
+          beforeSend: function() {
+              $(".ajaxMsg").html('<div class="alert alert-warning"><img src="images/ajax-loader.gif"></div>').show();
+          },
+          success: function(data)
+          {
+              $(".ajaxMsg").html('<div class="alert alert-success">Configuration Saved Successfully!</div>').show().fadeOut(5000);
+          },
+          error: function(XMLHttpRequest, textStatus, errorThrown) {
+              $(".ajaxMsg").html('<div class="alert alert-danger">'+textStatus+': '+errorThrown+'</div>').show().fadeOut(5000);
+          }
+      });
+      return false;
+  });
 </script>
 </%def>

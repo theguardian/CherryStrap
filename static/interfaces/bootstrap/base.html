@@ -29,6 +29,23 @@
     ${next.headIncludes()}
 </head>
 <body>
+    <!-- Modal -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="myModalLabel"></h4>
+          </div>
+          <div class="modal-body">
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary modal-confirm"></button>
+          </div>
+        </div>
+      </div>
+    </div>
     <!-- Fixed navbar -->
     <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
       <div class="container">
@@ -39,20 +56,23 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="/">${cherrystrap.SERVER_NAME}</a>
+          <a class="navbar-brand" href="/">${cherrystrap.APP_NAME}</a>
         </div>
         <div class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
-            <li><a href="/template_reference">Testing</a></li>
+            <li><a href="/template">Template</a></li>
+          </ul>
+          <ul class="nav navbar-nav pull-right">
             <li class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Config <b class="caret"></b></a>
-              <ul class="dropdown-menu">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-cog"></span> <b class="caret"></b></a>
+              <ul class="dropdown-menu pull-right">
                 <li><a href="/config">Configuration</a></li>
                 <li><a href="/logs">Logs</a></li>
                 <li class="divider"></li>
                 <li class="dropdown-header">Server</li>
                 <li><a href="/restart">Restart</a></li>
                 <li><a href="/shutdown">Shutdown</a></li>
+                <li><a data-toggle="modal" data-target="#myModal" data-uTitle="Configuration" data-uBody="Are you sure you want to configure?" data-uConfirm="Configure">Modal</a></li>
               </ul>
             </li>
           </ul>
@@ -61,16 +81,30 @@
     </div>
     <BR><BR><BR>
       <div class="container theme-showcase">
-        <div class="alerts" style="display:none;">
-        </div>
-	       ${next.body()}
-      <div class="ajaxMsg" style="position:fixed;bottom:0;right:0;margin-right:25px;"></div>
+        <div class="alerts" style="display:none;"></div>
+	      ${next.body()}
+        <div class="ajaxMsg" style="position:fixed;bottom:0;right:0;margin-right:25px;"></div>
       </div>
 	<!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
 	<script src="/js/jquery-2.1.4.min.js"></script>
   <script src="/js/bootstrap.min.js"></script>
+  <script>
+    $('#myModal').on('show.bs.modal', function (event) {
+      var clickSource = $(event.relatedTarget)
+      var uTitle = clickSource.data('uTitle')
+      var uBody = clickSource.data('uBody')
+      var uConfirm = clickSource.data('uConfirm')
+      var modal = $(this)
+      modal.find('.modal-title').text(uTitle)
+      modal.find('.modal-body').text(uBody)
+      modal.find('.modal-confirm').text(uConfirm)
+    })
+    $('#myModal').on('shown.bs.modal', function () {
+      $('#myInput').focus()
+    })
+  </script>
 	${next.javascriptIncludes()}
 </body>
 </html>

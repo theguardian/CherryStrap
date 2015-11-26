@@ -4,6 +4,7 @@ apscheduler = 3.0.4
 -- pytz = 2015.7
 - futures = 3.0.3
 configobj = 5.0.6
+MySQLdb = 1.2.4
 passlib = 1.6.5
 pkg_resources (from setuptools) = 18.6.1
 simplejson = 3.8.1
@@ -11,3 +12,5 @@ six = 1.10.0
 
 Scripts:
 certgen = https://github.com/notmyname/python_scripts/blob/master/openssl/certgen.py
+
+Note that the version of MySQLdb may be architecture dependent. MySQLdb 1.2.5 is the latest, but the latest Ubuntu (10.10) runs MySQL 1.2.4.

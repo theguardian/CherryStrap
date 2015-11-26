@@ -25,10 +25,8 @@ class apiInterface(object):
         if token != cherrystrap.API_TOKEN:
             return "{\"error\": \"Invalid Token\"}"
         else:
-            health_list = []
             health_array = collections.defaultdict()
             health_array['status'] = "OK"
-            health_list.append(health_array)
-            health_json = json.dumps(health_list)
+            health_json = json.dumps(health_array)
             return health_json
     health.exposed = True

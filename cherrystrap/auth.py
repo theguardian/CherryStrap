@@ -38,6 +38,8 @@ def check_auth(*args, **kwargs):
                 if not condition():
                     # Send old page as source parameter
                     raise cherrypy.HTTPRedirect(cherrypy.request.base+"/auth/login?source="+get_parmas)
+        elif not cherrystrap.HTTP_PASS:
+            pass
         else:
             # Send old page as source parameter
             raise cherrypy.HTTPRedirect(cherrypy.request.base+"/auth/login?source="+get_parmas)

@@ -48,7 +48,7 @@ def initialize(options={}):
     else:
         protocol = "http"
 
-    logger.info("Starting CherryStrap on %s://%s:%d/" % (protocol,
+    logger.info("Starting %s on %s://%s:%d/" % (cherrystrap.APP_NAME, protocol,
         options['http_host'], options['http_port']))
 
     cherrypy.config.update(options_dict)
@@ -72,6 +72,10 @@ def initialize(options={}):
         '/js':{
             'tools.staticdir.on': True,
             'tools.staticdir.dir': "js"
+        },
+        '/fonts':{
+            'tools.staticdir.on': True,
+            'tools.staticdir.dir': "fonts"
         },
         '/favicon.ico':{
             'tools.staticfile.on': True,

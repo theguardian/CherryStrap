@@ -98,7 +98,7 @@ def main():
         raise SystemExit('Cannot write to the data directory: ' + cherrystrap.DATADIR + '. Exit ...')
 
     # create database and config
-    cherrystrap.DBFILE = os.path.join(cherrystrap.DATADIR, 'sqlite.db')
+    cherrystrap.DBFILE = os.path.join(cherrystrap.DATADIR, '%s.db' % cherrystrap.APP_NAME)
     cherrystrap.CFG = ConfigObj(cherrystrap.CONFIGFILE, encoding='utf-8')
 
     cherrystrap.initialize()

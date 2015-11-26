@@ -13,6 +13,7 @@ from lib.configobj.configobj import ConfigObj
 from lib.apscheduler.schedulers.background import BackgroundScheduler
 from lib.apscheduler.triggers.interval import IntervalTrigger
 from lib.apscheduler.triggers.cron import CronTrigger
+import lib.MySQLdb as MySQLdb
 from cherrystrap import logger, formatter
 
 FULL_PATH = None
@@ -40,20 +41,26 @@ CFG = None
 LOGDIR = None
 LOGLIST = []
 
-SERVER_NAME = None
+APP_NAME = 'CherryStrap'
+HTTP_ROOT = None
 HTTP_HOST = None
 HTTP_PORT = None
-HTTP_USER = None
-HTTP_PASS = None
-HTTP_ROOT = None
-HTTP_LOOK = None
-VERIFY_SSL = True
-API_TOKEN = None
-LAUNCH_BROWSER = False
-
 HTTPS_ENABLED = False
 HTTPS_KEY = 'keys/server.key'
 HTTPS_CERT = 'keys/server.crt'
+VERIFY_SSL = True
+LAUNCH_BROWSER = False
+
+HTTP_USER = None
+HTTP_PASS = None
+HTTP_LOOK = None
+API_TOKEN = None
+
+DATABASE_TYPE = 'sqlite'
+MYSQL_HOST = None
+MYSQL_PORT = None
+MYSQL_USER = None
+MYSQL_PASS = None
 
 def CheckSection(sec):
     """ Check if INI section exists, if not create it """
@@ -106,36 +113,47 @@ def initialize():
     with INIT_LOCK:
 
         global __INITIALIZED__, FULL_PATH, PROG_DIR, LOGLEVEL, DAEMON, \
-        DATADIR, CONFIGFILE, CFG, LOGDIR, SERVER_NAME, HTTP_HOST, HTTP_PORT, \
+        DATADIR, CONFIGFILE, CFG, LOGDIR, APP_NAME, HTTP_HOST, HTTP_PORT, \
         HTTP_USER, HTTP_PASS, HTTP_ROOT, HTTP_LOOK, VERIFY_SSL, \
-        LAUNCH_BROWSER, HTTPS_ENABLED, HTTPS_KEY, HTTPS_CERT, API_TOKEN
+        LAUNCH_BROWSER, HTTPS_ENABLED, HTTPS_KEY, HTTPS_CERT, API_TOKEN, \
+        DATABASE_TYPE, MYSQL_HOST, MYSQL_PORT, MYSQL_USER, MYSQL_PASS
 
         if __INITIALIZED__:
             return False
 
-        CheckSection('General')
+        CheckSection('Server')
+        CheckSection('Interface')
+        CheckSection('Database')
 
         try:
-            HTTP_PORT = check_setting_int(CFG, 'General', 'http_port', 7889)
+            HTTP_PORT = check_setting_int(CFG, 'Server', 'http_port', 7889)
         except:
             HTTP_PORT = 7889
 
         if HTTP_PORT < 21 or HTTP_PORT > 65535:
             HTTP_PORT = 7889
 
-        SERVER_NAME = check_setting_str(CFG, 'General', 'server_name', 'Server')
-        HTTP_HOST = check_setting_str(CFG, 'General', 'http_host', '0.0.0.0')
-        HTTPS_ENABLED = bool(check_setting_int(CFG, 'General', 'https_enabled', 0))
-        HTTPS_KEY = check_setting_str(CFG, 'General', 'https_key', 'keys/server.key')
-        HTTPS_CERT = check_setting_str(CFG, 'General', 'https_cert', 'keys/server.crt')
-        HTTP_USER = check_setting_str(CFG, 'General', 'http_user', '')
-        HTTP_PASS = check_setting_str(CFG, 'General', 'http_pass', '')
-        HTTP_ROOT = check_setting_str(CFG, 'General', 'http_root', '')
-        HTTP_LOOK = check_setting_str(CFG, 'General', 'http_look', 'bootstrap')
-        VERIFY_SSL = bool(check_setting_int(CFG, 'General', 'verify_ssl', 1))
-        API_TOKEN = check_setting_str(CFG, 'General', 'api_token', uuid.uuid4().hex)
-        LAUNCH_BROWSER = bool(check_setting_int(CFG, 'General', 'launch_browser', 0))
-        LOGDIR = check_setting_str(CFG, 'General', 'logdir', '')
+        APP_NAME = check_setting_str(CFG, 'Server', 'app_name', 'CherryStrap')
+        HTTP_ROOT = check_setting_str(CFG, 'Server', 'http_root', '')
+        LOGDIR = check_setting_str(CFG, 'Server', 'logdir', '')
+        HTTP_HOST = check_setting_str(CFG, 'Server', 'http_host', '0.0.0.0')
+        HTTPS_ENABLED = bool(check_setting_int(CFG, 'Server', 'https_enabled', 0))
+        HTTPS_KEY = check_setting_str(CFG, 'Server', 'https_key', 'keys/server.key')
+        HTTPS_CERT = check_setting_str(CFG, 'Server', 'https_cert', 'keys/server.crt')
+        VERIFY_SSL = bool(check_setting_int(CFG, 'Server', 'verify_ssl', 1))
+        LAUNCH_BROWSER = bool(check_setting_int(CFG, 'Server', 'launch_browser', 0))
+
+        HTTP_USER = check_setting_str(CFG, 'Interface', 'http_user', '')
+        HTTP_PASS = check_setting_str(CFG, 'Interface', 'http_pass', '')
+        HTTP_LOOK = check_setting_str(CFG, 'Interface', 'http_look', 'bootstrap')
+        API_TOKEN = check_setting_str(CFG, 'Interface', 'api_token', uuid.uuid4().hex)
+
+        DATABASE_TYPE = check_setting_str(CFG, 'Database', 'database_type', 'sqlite')
+        MYSQL_HOST = check_setting_str(CFG, 'Database', 'mysql_host', 'localhost')
+        MYSQL_PORT = check_setting_int(CFG, 'Database', 'mysql_port', 3306)
+        MYSQL_USER = check_setting_str(CFG, 'Database', 'mysql_user', '')
+        MYSQL_PASS = check_setting_str(CFG, 'Database', 'mysql_pass', '')
+
 
         if not LOGDIR:
             LOGDIR = os.path.join(DATADIR, 'Logs')
@@ -223,40 +241,78 @@ def config_write():
     new_config = ConfigObj()
     new_config.filename = CONFIGFILE
 
-    new_config['General'] = {}
-    new_config['General']['server_name'] = SERVER_NAME
-    new_config['General']['http_port'] = HTTP_PORT
-    new_config['General']['http_host'] = HTTP_HOST
-    new_config['General']['https_enabled'] = int(HTTPS_ENABLED)
-    new_config['General']['https_key'] = HTTPS_KEY
-    new_config['General']['https_cert'] = HTTPS_CERT
-    new_config['General']['http_user'] = HTTP_USER
-    new_config['General']['http_pass'] = HTTP_PASS
-    new_config['General']['http_root'] = HTTP_ROOT
-    new_config['General']['http_look'] = HTTP_LOOK
-    new_config['General']['verify_ssl'] = int(VERIFY_SSL)
-    new_config['General']['api_token'] = API_TOKEN
-    new_config['General']['launch_browser'] = int(LAUNCH_BROWSER)
-    new_config['General']['logdir'] = LOGDIR
+    new_config['Server'] = {}
+    new_config['Server']['app_name'] = APP_NAME
+    new_config['Server']['http_root'] = HTTP_ROOT
+    new_config['Server']['logdir'] = LOGDIR
+    new_config['Server']['http_host'] = HTTP_HOST
+    new_config['Server']['http_port'] = HTTP_PORT
+    new_config['Server']['https_enabled'] = int(HTTPS_ENABLED)
+    new_config['Server']['https_key'] = HTTPS_KEY
+    new_config['Server']['https_cert'] = HTTPS_CERT
+    new_config['Server']['verify_ssl'] = int(VERIFY_SSL)
+    new_config['Server']['launch_browser'] = int(LAUNCH_BROWSER)
+
+    new_config['Interface'] = {}
+    new_config['Interface']['http_user'] = HTTP_USER
+    new_config['Interface']['http_pass'] = HTTP_PASS
+    new_config['Interface']['http_look'] = HTTP_LOOK
+    new_config['Interface']['api_token'] = API_TOKEN
+
+    new_config['Database'] = {}
+    new_config['Database']['database_type'] = DATABASE_TYPE
+    new_config['Database']['mysql_host'] = MYSQL_HOST
+    new_config['Database']['mysql_port'] = MYSQL_PORT
+    new_config['Database']['mysql_user'] = MYSQL_USER
+    new_config['Database']['mysql_pass'] = MYSQL_PASS
 
     new_config.write()
 
 def dbcheck():
 
-    conn = sqlite3.connect(DBFILE)
-    c = conn.cursor()
-    # Create and modify your database here
+    # User should have a choice between sqlite and mysql
 
-    # c.execute('CREATE TABLE IF NOT EXISTS authors (AuthorID TEXT, AuthorName TEXT UNIQUE, AuthorImg TEXT, AuthorLink TEXT, DateAdded TEXT, Status TEXT, LastBook TEXT, LastLink Text, LastDate TEXT, HaveBooks INTEGER, TotalBooks INTEGER, AuthorBorn TEXT, AuthorDeath TEXT, UnignoredBooks INTEGER)')
-    # try:
-    #     c.execute('SELECT UnignoredBooks from authors')
-    #     logger.info('Updating database to hold UnignoredBooks')
-    # except sqlite3.OperationalError:
-    #     logger.error('Could not create column Unignored Books in table authors')
-    #     c.execute('ALTER TABLE authors ADD COLUMN UnignoredBooks INTEGER')
+    if DATABASE_TYPE == "sqlite":
+        conn = sqlite3.connect(DBFILE)
+        c = conn.cursor()
+        # Create and modify your database here
 
-    conn.commit()
-    c.close()
+        # c.execute('CREATE TABLE IF NOT EXISTS authors (AuthorID TEXT, AuthorName TEXT UNIQUE)')
+        # try:
+        #     c.execute('SELECT UnignoredBooks from authors')
+        #     logger.info('Updating database to hold UnignoredBooks')
+        # except sqlite3.OperationalError:
+        #     logger.error('Could not create column Unignored Books in table authors')
+        #     c.execute('ALTER TABLE authors ADD COLUMN UnignoredBooks INTEGER')
+
+        conn.commit()
+        c.close()
+    elif DATABASE_TYPE == "mysql":
+        # Uncomment this if you have mysql configured and want to create a db
+        # try:
+        #     conn_ini = MySQLdb.Connection(host=MYSQL_HOST, port=MYSQL_PORT,
+        #     user=MYSQL_USER, passwd=formatter.decode('obscure', MYSQL_PASS),
+        #     charset='utf8', use_unicode=True)
+        #     c_ini = conn_ini.cursor(MySQLdb.cursors.DictCursor)
+        #     c_ini.execute('CREATE DATABASE IF NOT EXISTS %s' % APP_NAME)
+        #     conn_ini.commit()
+        #     c_ini.close()
+        # except Exception, e:
+        #     logger.warn("There was a problem creating the MySQL database: %s" % e)
+
+        # Now we're free to build our schema
+
+        try:
+            conn = MySQLdb.Connection(host=MYSQL_HOST, port=MYSQL_PORT,
+            user=MYSQL_USER, passwd=formatter.decode('obscure', MYSQL_PASS),
+            charset='utf8', use_unicode=True, db=APP_NAME)
+            c = conn.cursor(MySQLdb.cursors.DictCursor)
+            # table creation and augment statements go here
+            #c.execute('CREATE TABLE IF NOT EXISTS authors (AuthorID VARCHAR(30) PRIMARY KEY, AuthorName TEXT)')
+            conn.commit()
+            c.close()
+        except Exception, e:
+            logger.warn("There was a problem initializing the MySQL database: %s" % e)
 
 def start():
     global __INITIALIZED__, scheduler_started
@@ -274,7 +330,7 @@ def start():
 
 def shutdown(restart=False):
     config_write()
-    logger.info('CherryStrap is shutting down ...')
+    logger.info('%s is shutting down ...' % APP_NAME)
     cherrypy.engine.exit()
 
     try:
@@ -287,12 +343,13 @@ def shutdown(restart=False):
         os.remove(PIDFILE)
 
     if restart:
-        logger.info('CherryStrap is restarting ...')
+        logger.info('%s is restarting ...' % APP_NAME)
         popen_list = [sys.executable, FULL_PATH]
         popen_list += ARGS
         if '--nolaunch' not in popen_list:
             popen_list += ['--nolaunch']
-            logger.info('Restarting CherryStrap with ' + str(popen_list))
+            prepend_msg = 'Restarting ' + APP_NAME + ' with '
+            logger.info(prepend_msg + str(popen_list))
         subprocess.Popen(popen_list, cwd=os.getcwd())
 
     os._exit(0)
