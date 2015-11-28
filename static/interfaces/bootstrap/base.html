@@ -138,7 +138,7 @@
             {
               % if cherrystrap.GIT_ENABLE and not cherrystrap.GIT_LOCAL:
                 $(".ajaxMsg").html(`
-                  <div class="alert alert-primary">
+                  <div class="alert alert-warning">
                     You're running an unknown version of ${cherrystrap.APP_NAME}. <a href="update">Update</a> or
                     <a onclick="dismissAjax()">Dismiss</a>
                   </div>
