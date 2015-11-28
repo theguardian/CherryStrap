@@ -2,6 +2,7 @@
 ######################
 cache/*
 *.db
+*.lock
 config.ini
 Logs/*
 keys/*

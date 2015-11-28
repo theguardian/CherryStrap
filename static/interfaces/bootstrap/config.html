@@ -8,14 +8,15 @@
 </%def>
 
 <%def name="body()">
-<h1>Configuration Options</h1>
+<h1>Settings</h1>
 <ul class="nav nav-tabs" id="configTable">
     <li><a href="#1" data-toggle="tab">Server</a></li>
     <li><a href="#2" data-toggle="tab">Interface</a></li>
     <li><a href="#3" data-toggle="tab">Database</a></li>
+    <li><a href="#4" data-toggle="tab">Update</a></li>
 </ul>
 <form id="config_form">
-  <div class="tab-content">
+  <div class="row col-md-12 tab-content">
     <div class="tab-pane" id="1">
       <br/>
       <div class="row">
@@ -136,8 +137,58 @@
       </div>
     </div>
 
+    <div class="tab-pane" id="4">
+      <br/>
+      <div class="row">
+        <div class="col-md-12 form-group">
+          <label for="gitEnabled">&nbsp;Enable Git Updater</label>
+          <input type="checkbox" name="git_enable" value=1 ${config['git_enable']} class="checkbox pull-left" id="gitEnabled">
+        </div>
+        <div class="col-md-12" id="gitGroup">
+          <div class="col-md-6 form-group">
+            <label for="gitPath">Git Path</label>
+            <input type="text" name="git_path" value="${config['git_path']}" class="form-control" id="gitPath" placeholder="Git Path">
+          </div>
+          <div class="col-md-6 form-group">
+            <label for="gitUser">Git User</label>
+            <input type="text" name="git_user" value="${config['git_user']}" class="form-control" id="gitUser" placeholder="Git User" readonly>
+          </div>
+          <div class="col-md-6 form-group">
+            <label for="gitRepo">Git Repo</label>
+            <input type="text" name="git_repo" value="${config['git_repo']}" class="form-control" id="gitRepo" placeholder="Git Repo" readonly>
+          </div>
+          <div class="col-md-6 form-group">
+            <label for="gitBranch">Git Branch</label>
+            <input type="text" name="git_branch" value="${config['git_branch']}" class="form-control" id="gitBranch" placeholder="Git Branch" readonly>
+          </div>
+          <div class="col-md-6 form-group">
+            <label for="gitUpstream">Git Remote Version</label>
+            <input type="text" name="git_upstream" value="${config['git_upstream']}" class="form-control" id="gitUpstream" placeholder="Git Remote Version" readonly>
+          </div>
+          <div class="col-md-6 form-group">
+            <label for="gitLocal">Git Local Version</label>
+            <input type="text" name="git_local" value="${config['git_local']}" class="form-control" id="gitLocal" placeholder="Git Local Version" readonly>
+          </div>
+          <div class="col-md-6 form-group">
+            <label for="gitStartup">&nbsp;Check for Updates on Startup</label>
+            <input type="checkbox" name="git_startup" value=1 ${config['git_startup']} class="checkbox pull-left" id="gitStartup">
+          </div>
+          <div class="col-md-6 form-group">
+            <label for="gitInterval">Check for Updates</label>
+            <div class="input-group">
+              <input type="text" name="git_interval" value="${config['git_interval']}" class="form-control" id="gitInterval" placeholder="6">
+              <div class="input-group-addon">Hours</div>
+            </div>
+          </div>
+          <div class="col-md-6 form-group" style="visibility:hidden;">
+            <label for="gitOverride">&nbsp;Do Not Override Branch?</label>
+            <input type="checkbox" name="git_override" value=1 ${config['git_override']} class="checkbox pull-left" id="gitOverride" readonly>
+          </div>
+        </div>
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary pull-right">Save Configuration</button>
   </div>
-  <button type="submit" class="btn btn-primary pull-right">Save Configuration</button>
 </form>
 </%def>
 
@@ -163,6 +214,14 @@
          return true;
      }
      $('#mysqlGroup').show();
+  });
+
+  if (!$("#gitEnabled").is(":checked")) {
+    $('#gitGroup').hide()
+  }
+
+  $('#gitEnabled').click(function() {
+    $('#gitGroup')[this.checked ? "show" : "hide"]();
   });
 
   $("#config_form").submit(function() {

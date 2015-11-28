@@ -64,7 +64,17 @@ class WebInterface(object):
                     "mysql_host":       cherrystrap.MYSQL_HOST,
                     "mysql_port":       cherrystrap.MYSQL_PORT,
                     "mysql_user":       cherrystrap.MYSQL_USER,
-                    "mysql_pass":       cherrystrap.MYSQL_PASS
+                    "mysql_pass":       cherrystrap.MYSQL_PASS,
+                    "git_enable":       checked(cherrystrap.GIT_ENABLE),
+                    "git_path":         cherrystrap.GIT_PATH,
+                    "git_user":         cherrystrap.GIT_USER,
+                    "git_repo":         cherrystrap.GIT_REPO,
+                    "git_branch":       cherrystrap.GIT_BRANCH,
+                    "git_upstream":     cherrystrap.GIT_UPSTREAM,
+                    "git_local":        cherrystrap.GIT_LOCAL,
+                    "git_startup":      checked(cherrystrap.GIT_STARTUP),
+                    "git_interval":     cherrystrap.GIT_INTERVAL,
+                    "git_override":     checked(cherrystrap.GIT_OVERRIDE)
                 }
         return serve_template(templatename="config.html", title="Settings", config=config)
     config.exposed = True
@@ -95,42 +105,23 @@ class WebInterface(object):
         return serve_template(templatename="template.html", title="Template Reference")
     template.exposed=True
 
-    # Returns JSON to display in logs view
-    def getLog(self,iDisplayStart=0,iDisplayLength=100,iSortCol_0=0,sSortDir_0="desc",sSearch="",**kwargs):
-
-        iDisplayStart = int(iDisplayStart)
-        iDisplayLength = int(iDisplayLength)
-
-        filtered = []
-        if sSearch == "":
-            filtered = cherrystrap.LOGLIST[::]
-        else:
-            filtered = [row for row in cherrystrap.LOGLIST for column in row if sSearch in column]
-
-        sortcolumn = 0
-        if iSortCol_0 == '1':
-            sortcolumn = 2
-        elif iSortCol_0 == '2':
-            sortcolumn = 1
-        filtered.sort(key=lambda x:x[sortcolumn],reverse=sSortDir_0 == "desc")
-
-        rows = filtered[iDisplayStart:(iDisplayStart+iDisplayLength)]
-        rows = [[row[0],row[2],row[1]] for row in rows]
-
-        dict = {'iTotalDisplayRecords':len(filtered),
-                'iTotalRecords':len(cherrystrap.LOGLIST),
-                'aaData':rows,
-                }
-        s = json.dumps(dict)
-        return s
-    getLog.exposed = True
-
     # AJAX def to update configuration file
-    def configUpdate(self, app_name='CherryStrap', http_host='0.0.0.0',
-    http_user=None, http_port=7889, http_pass=None, http_look=None,
+    def configUpdate(self, app_name=None, http_host=None,
+    http_user=None, http_port=0, http_pass=None, http_look=None,
     launch_browser=0, logdir=None, https_enabled=0, https_key=None,
-    https_cert=None, verify_ssl=0, api_token=None, database_type='sqlite',
-    mysql_host='localhost', mysql_port=3306, mysql_user=None, mysql_pass=None):
+    https_cert=None, verify_ssl=0, api_token=None, database_type=None,
+    mysql_host=None, mysql_port=0, mysql_user=None, mysql_pass=None,
+    git_enable=0, git_path=None, git_user=None, git_repo=None,
+    git_branch=None, git_upstream=None, git_local=None, git_startup=0,
+    git_interval=0, git_override=0):
+
+        # Make sure this is requested via ajax
+        request_type = cherrypy.request.headers.get('X-Requested-With')
+        if str(request_type).lower() == 'xmlhttprequest':
+            pass
+        else:
+            status_msg = "This page exists, but is not accessible via web browser"
+            return serve_template(templatename="index.html", title="404 - Page Not Found", msg=status_msg)
 
         cherrystrap.APP_NAME = app_name
         cherrystrap.LOGDIR = logdir
@@ -143,7 +134,10 @@ class WebInterface(object):
         cherrystrap.LAUNCH_BROWSER = launch_browser
         cherrystrap.HTTP_USER = http_user
         if http_pass != cherrystrap.HTTP_PASS:
-            cherrystrap.HTTP_PASS = sha256_crypt.encrypt(http_pass)
+            try:
+                cherrystrap.HTTP_PASS = sha256_crypt.encrypt(http_pass)
+            except Exception, e:
+                logger.error('There was a problem generating password hash: %s' % e)
         else:
             cherrystrap.HTTP_PASS = cherrystrap.HTTP_PASS
         cherrystrap.HTTP_LOOK = http_look
@@ -153,9 +147,25 @@ class WebInterface(object):
         cherrystrap.MYSQL_PORT = mysql_port
         cherrystrap.MYSQL_USER = mysql_user
         if mysql_pass != cherrystrap.MYSQL_PASS:
-            cherrystrap.MYSQL_PASS = formatter.encode('obscure', mysql_pass)
+            try:
+                cherrystrap.MYSQL_PASS = formatter.encode('obscure', mysql_pass)
+            except Exception, e:
+                logger.error('There was a problem encoding MySQL password: %s' % e)
         else:
             cherrystrap.MYSQL_PASS = cherrystrap.MYSQL_PASS
+        cherrystrap.GIT_ENABLE = git_enable
+        cherrystrap.GIT_PATH = git_path
+        cherrystrap.GIT_USER = git_user
+        cherrystrap.GIT_REPO = git_repo
+        cherrystrap.GIT_BRANCH = git_branch
+        cherrystrap.GIT_UPSTREAM = git_upstream
+        cherrystrap.GIT_LOCAL = git_local
+        cherrystrap.GIT_STARTUP = git_startup
+        try:
+            cherrystap.GIT_INTERVAL = int(git_interval)
+        except:
+            cherrystrap.GIT_INTERVAL = 6
+        cherrystrap.GIT_OVERRIDE = git_override
 
         cherrystrap.config_write()
         logger.info("Configuration saved successfully")

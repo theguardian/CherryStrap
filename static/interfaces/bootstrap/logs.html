@@ -4,78 +4,56 @@
 %>
 
 <%def name="headIncludes()">
-<link rel="stylesheet" href="css/data_table.css">
+<link rel="stylesheet" href="//cdn.datatables.net/1.10.10/css/jquery.dataTables.min.css"/>
 <title>${cherrystrap.APP_NAME}: ${title}</title>
 </%def>
 
 <%def name="body()">
-	<p align="right">Refresh rate:
-		<select id="refreshrate" onchange="setRefresh()">
-		<option value="0" selected="selected">No Refresh</option>
-		<option value="5">5 Seconds</option>
-		<option value="15">15 Seconds</option>
-		<option value="30">30 Seconds</option>
-		<option value="60">60 Seconds</option>
-		<option value="300">5 Minutes</option>
-		<option value="600">10 Minutes</option>
-		</select>
-	</p>
-	<BR><BR>
-	<table class="table table-striped" id="log_table">
-		<thead>
-			<tr>
-				<th id="timestamp">Timestamp</th>
-				<th id="level">Level</th>
-				<th id="message">Message</th>
-			</tr>
-		</thead>
-		<tbody>
-		</tbody>
-	</table>
+<h1>Log Viewer</h1>
+	<div class="row col-md-12 logTable">
+		<table class="table table-striped" id="log_table">
+			<thead>
+				<tr>
+					<th id="timestamp">Timestamp</th>
+					<th id="level">Level</th>
+					<th id="thread">Thread</th>
+					<th id="message">Message</th>
+				</tr>
+			</thead>
+		</table>
+	</div>
+
+	<div class="row col-md-12">
+		<div class="col-md-4 col-md-offset-4 input-group">
+			<div class="input-group-addon">Refresh Rate:&nbsp;</div>
+			<select name="refresh_rate" class="form-control" id="refreshrate" onchange="setRefresh()">
+				<option value="0" selected="selected">Disabled</option>
+				<option value="5">5</option>
+				<option value="15">15</option>
+				<option value="30">30</option>
+				<option value="60">60</option>
+				<option value="300">300</option>
+				<option value="600">600</option>
+			</select>
+			<div class="input-group-addon">Seconds</div>
+		</div>
+	</div>
 </%def>
 
 <%def name="javascriptIncludes()">
 	<script src="js/jquery.dataTables.min.js"></script>
 	<script>
 		$(document).ready(function() {
-			$('#log_table').dataTable( {
-				"bProcessing": true,
-		        "bServerSide": true,
-				"sAjaxSource": 'getLog',
-		        "sPaginationType": "full_numbers",
-		        "aaSorting": [[0, 'desc']],
-		        "iDisplayLength": 25,
-		        "bStateSave": true,
-		        "oLanguage": {
-		                    "sSearch":"",
-							"sLengthMenu":"Show _MENU_ lines per page",
-							"sEmptyTable": "No log information available",
-							"sInfo":"Showing _START_ to _END_ of _TOTAL_ lines",
-							"sInfoEmpty":"Showing 0 to 0 of 0 lines",
-							"sInfoFiltered":"(filtered from _MAX_ total lines)"},
-		        "fnRowCallback": function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
-		                                if (aData[1] === "WARNING" || aData[1] === "ERROR")
-		                                {
-		                                    $('td', nRow).closest('tr').addClass("gradeX");
-		                                }
-		                                else
-		                                {
-		                                    $('td', nRow).closest('tr').addClass("gradeZ");
-		                                }
+			var dataTable = $('#log_table').dataTable({
+				serverSide: true,
+				ajax: {
+					url: '/api/v1/getLog',
+					type: 'get',
+				},
+				order: [[ 0, 'desc' ]]
+			});
+		});
 
-
-		                                return nRow;
-		                                },
-		        "fnServerData": function ( sSource, aoData, fnCallback ) {
-					/* Add some extra data to the sender */
-					$.getJSON( sSource, aoData, function (json) {
-						fnCallback(json)
-					} );
-				}
-			} );
-		} );
-	</script>
-	<script>
 		var timer;
 		function setRefresh()
 		{

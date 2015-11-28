@@ -13,7 +13,7 @@ from lib.configobj.configobj import ConfigObj
 from lib.apscheduler.schedulers.background import BackgroundScheduler
 from lib.apscheduler.triggers.interval import IntervalTrigger
 from lib.apscheduler.triggers.cron import CronTrigger
-from cherrystrap import logger, formatter
+from cherrystrap import logger, formatter, versioncheck
 
 FULL_PATH = None
 PROG_DIR = None
@@ -36,6 +36,8 @@ DATADIR = None
 DBFILE = None
 CONFIGFILE = None
 CFG = None
+
+LOGIN_STATUS=False
 
 LOGDIR = None
 LOGLIST = []
@@ -60,6 +62,17 @@ MYSQL_HOST = None
 MYSQL_PORT = None
 MYSQL_USER = None
 MYSQL_PASS = None
+
+GIT_ENABLE = True
+GIT_PATH = None
+GIT_USER = 'theguardian'
+GIT_REPO = 'CherryStrap'
+GIT_BRANCH = 'master'
+GIT_UPSTREAM = None
+GIT_LOCAL = None
+GIT_STARTUP = True
+GIT_INTERVAL = 6
+GIT_OVERRIDE = False
 
 def CheckSection(sec):
     """ Check if INI section exists, if not create it """
@@ -115,7 +128,9 @@ def initialize():
         DATADIR, CONFIGFILE, CFG, LOGDIR, APP_NAME, HTTP_HOST, HTTP_PORT, \
         HTTP_USER, HTTP_PASS, HTTP_ROOT, HTTP_LOOK, VERIFY_SSL, \
         LAUNCH_BROWSER, HTTPS_ENABLED, HTTPS_KEY, HTTPS_CERT, API_TOKEN, \
-        DATABASE_TYPE, MYSQL_HOST, MYSQL_PORT, MYSQL_USER, MYSQL_PASS
+        DATABASE_TYPE, MYSQL_HOST, MYSQL_PORT, MYSQL_USER, MYSQL_PASS, \
+        GIT_ENABLE, GIT_PATH, GIT_BRANCH, GIT_USER, GIT_STARTUP, GIT_INTERVAL, \
+        GIT_OVERRIDE, GIT_REPO, GIT_UPSTREAM, GIT_LOCAL
 
         if __INITIALIZED__:
             return False
@@ -123,6 +138,7 @@ def initialize():
         CheckSection('Server')
         CheckSection('Interface')
         CheckSection('Database')
+        CheckSection('Git')
 
         try:
             HTTP_PORT = check_setting_int(CFG, 'Server', 'http_port', 7889)
@@ -153,6 +169,16 @@ def initialize():
         MYSQL_USER = check_setting_str(CFG, 'Database', 'mysql_user', '')
         MYSQL_PASS = check_setting_str(CFG, 'Database', 'mysql_pass', '')
 
+        GIT_ENABLE = bool(check_setting_int(CFG, 'Git', 'git_enable', 1))
+        GIT_PATH = check_setting_str(CFG, 'Git', 'git_path', '/usr/bin/git')
+        GIT_USER = check_setting_str(CFG, 'Git', 'git_user', 'theguardian')
+        GIT_REPO = check_setting_str(CFG, 'Git', 'git_repo', 'CherryStrap')
+        GIT_BRANCH = check_setting_str(CFG, 'Git', 'git_branch', 'master')
+        GIT_UPSTREAM = check_setting_str(CFG, 'Git', 'git_upstream', '')
+        GIT_LOCAL = check_setting_str(CFG, 'Git', 'git_local', '')
+        GIT_STARTUP = bool(check_setting_int(CFG, 'Git', 'git_startup', 1))
+        GIT_INTERVAL = check_setting_int(CFG, 'Git', 'git_interval', 6)
+        GIT_OVERRIDE = bool(check_setting_int(CFG, 'Git', 'git_override', 0))
 
         if not LOGDIR:
             LOGDIR = os.path.join(DATADIR, 'Logs')
@@ -182,6 +208,37 @@ def initialize():
             dbcheck()
         except Exception, e:
             logger.error("Can't connect to the database: %s" % e)
+
+        # Get the currently installed version. Returns None, 'win32' or the git
+        # hash.
+        GIT_LOCAL, GIT_BRANCH = versioncheck.getVersion()
+
+        # Write current version to a file, so we know which version did work.
+        # This allowes one to restore to that version. The idea is that if we
+        # arrive here, most parts of the app seem to work.
+        if GIT_LOCAL:
+            version_lock_file = os.path.join(DATADIR, "version.lock")
+
+            try:
+                with open(version_lock_file, "w") as fp:
+                    fp.write(GIT_LOCAL)
+            except IOError as e:
+                logger.error("Unable to write current version to file '%s': %s",
+                             version_lock_file, e)
+
+        # Check for new versions
+        if GIT_ENABLE and GIT_STARTUP:
+            try:
+                GIT_UPSTREAM = versioncheck.checkGithub()
+            except:
+                logger.error("Unhandled exception in version check")
+                GIT_UPSTREAM = GIT_LOCAL
+        else:
+            GIT_UPSTREAM = GIT_LOCAL
+
+        # Store the original umask
+        UMASK = os.umask(0)
+        os.umask(UMASK)
 
         __INITIALIZED__ = True
         return True
@@ -265,6 +322,18 @@ def config_write():
     new_config['Database']['mysql_user'] = MYSQL_USER
     new_config['Database']['mysql_pass'] = MYSQL_PASS
 
+    new_config['Git'] = {}
+    new_config['Git']['git_enable'] = int(GIT_ENABLE)
+    new_config['Git']['git_path'] = GIT_PATH
+    new_config['Git']['git_user'] = GIT_USER
+    new_config['Git']['git_repo'] = GIT_REPO
+    new_config['Git']['git_branch'] = GIT_BRANCH
+    new_config['Git']['git_upstream'] = GIT_UPSTREAM
+    new_config['Git']['git_local'] = GIT_LOCAL
+    new_config['Git']['git_startup'] = int(GIT_STARTUP)
+    new_config['Git']['git_interval'] = GIT_INTERVAL
+    new_config['Git']['git_override'] = int(GIT_OVERRIDE)
+
     new_config.write()
 
 def dbcheck():
@@ -325,11 +394,22 @@ def start():
     global __INITIALIZED__, scheduler_started
 
     if __INITIALIZED__:
+
+        #Update check
+        if GIT_ENABLE:
+            if GIT_INTERVAL:
+                gitHours = GIT_INTERVAL
+            else:
+                gitHours = 0
+
         try:
             # Crons and scheduled jobs go here
             # testInterval = IntervalTrigger(weeks=0, days=0, hours=0, minutes=2, seconds=0, start_date=None, end_date=None, timezone=None)
             # testCron = CronTrigger(year=None, month=None, day=None, week=None, day_of_week=None, hour=None, minute='*/2', second=None, start_date=None, end_date=None, timezone=None)
             # SCHED.add_job(formatter.schedulerTest, testCron)
+            if gitHours != 0:
+                gitInterval = IntervalTrigger(weeks=0, days=0, hours=gitHours, minutes=0, seconds=0, start_date=None, end_date=None, timezone=None)
+                SCHED.add_job(versioncheck.checkGithub, gitInterval)
             SCHED.start()
             scheduler_started = True
         except Exception, e:

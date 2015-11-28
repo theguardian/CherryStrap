@@ -8,20 +8,26 @@
 </%def>
 
 <%def name="body()">
-<form method="post" action="/auth/login">
-	%if source:
-		<input type="hidden" name="source" value="${source}" />
-	%endif
-  <div class="form-group">
-    <label for="exampleInputUser1">Username</label>
-    <input type="text" name="username" value="${username}" class="form-control" id="exampleInputUser1" placeholder="Username">
-  </div>
-  <div class="form-group">
-    <label for="exampleInputPassword1">Password</label>
-    <input type="password" name="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
-  </div>
-  <button type="submit" class="btn btn-default">Login</button>
-</form>
+
+<div class="row">
+	<form method="post" action="/auth/login">
+		%if source:
+			<input type="hidden" name="source" value="${source}" />
+		%endif
+	  <div class="col-md-4 col-md-offset-4 form-group">
+	    <label for="inputUsername">Username</label>
+	    <input type="text" name="username" value="${username}" class="form-control" id="inputUsername" placeholder="Username">
+	  </div>
+	  <div class="col-md-4 col-md-offset-4 form-group">
+	    <label for="inputPassword">Password</label>
+	    <input type="password" name="password" class="form-control" id="inputPassword" placeholder="Password">
+	  </div>
+		<div class="col-md-4 col-md-offset-4">
+	  	<button type="submit" class="btn btn-primary pull-right">Login</button>
+		</div>
+	</form>
+</div>
+
 </%def>
 
 <%def name="javascriptIncludes()">

@@ -103,9 +103,11 @@ class AuthController(object):
 
     def on_login(self, username):
         """Called on successful login"""
+        cherrystrap.LOGIN_STATUS=True
 
     def on_logout(self, username):
         """Called on logout"""
+        cherrystrap.LOGIN_STATUS=False
 
     @cherrypy.expose
     def get_loginform(self, username, msg="Login Required", source="/"):
