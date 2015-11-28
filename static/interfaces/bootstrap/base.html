@@ -64,7 +64,7 @@
                 %endif
                 <li class="divider"></li>
                 <li class="dropdown-header">Server</li>
-                <li><a href="#"><span class="glyphicon glyphicon-repeat"></span>&nbsp;Check for Updates</a></li>
+                <li><a onclick="checkUpdates()" onmouseover="" style="cursor: pointer;"><span class="glyphicon glyphicon-repeat"></span>&nbsp;Check for Updates</a></li>
                 <li><a href="#" data-toggle="modal" data-target="#defaultModal"
                   data-utitle="Restart?"
                   data-ubody="Are you sure you want to restart ${cherrystrap.APP_NAME}?"
@@ -83,7 +83,7 @@
         </div><!--/.nav-collapse -->
       </div>
     </div>
-    <BR><BR><BR>
+    <BR/><BR/><BR/>
       <div class="container theme-showcase">
         <div class="alerts" style="display:none;"></div>
 	      ${next.body()}
@@ -117,6 +117,66 @@
     function shutdownServer() {
       window.location.href = "/shutdown";
     }
+
+    function dismissAjax() {
+      $(".ajaxMsg").hide();
+      $.ajax({
+          type: "GET",
+          url: "ignoreUpdates"
+      });
+      return false;
+    }
+
+    function checkUpdates() {
+        $.ajax({
+            type: "GET",
+            url: "checkGithub",
+            beforeSend: function() {
+                $(".ajaxMsg").html('<div class="alert alert-warning"><img src="images/ajax-loader.gif"/></div>').show();
+            },
+            success: function(data)
+            {
+              % if cherrystrap.GIT_ENABLE and not cherrystrap.GIT_LOCAL:
+                $(".ajaxMsg").html(`
+                  <div class="alert alert-primary">
+                    You're running an unknown version of ${cherrystrap.APP_NAME}. <a href="update">Update</a> or
+                    <a onclick="dismissAjax()">Dismiss</a>
+                  </div>
+                `).show();
+              % elif cherrystrap.GIT_ENABLE and cherrystrap.GIT_LOCAL != cherrystrap.GIT_UPSTREAM and cherrystrap.COMMITS_BEHIND > 0:
+                $(".ajaxMsg").html(`
+                  <div class="alert alert-info">
+                    A <a href="https://github.com/${cherrystrap.GIT_USER}/${cherrystrap.GIT_REPO}/compare/${cherrystrap.GIT_LOCAL}...${cherrystrap.GIT_UPSTREAM}">
+                    newer version</a> of ${cherrystrap.APP_NAME} is available.
+                    You're ${cherrystrap.COMMITS_BEHIND} commits behind.
+                    <a href="update">Update</a> or <a onclick="dismissAjax()" onmouseover="" style="cursor: pointer;">Dismiss</a>
+                  </div>
+                `).show();
+              % elif cherrystrap.GIT_ENABLE and cherrystrap.GIT_LOCAL == cherrystrap.GIT_UPSTREAM and cherrystrap.COMMITS_BEHIND == 0:
+                $(".ajaxMsg").html(`
+                <div class="alert alert-success">
+                  You're running the latest version of ${cherrystrap.APP_NAME}
+                </div>
+                `).show().fadeOut(5000);
+              % endif
+            },
+            error: function(XMLHttpRequest, textStatus, errorThrown) {
+                $(".ajaxMsg").html('<div class="alert alert-danger">'+textStatus+': '+errorThrown+'</div>').show().fadeOut(5000);
+            }
+        });
+        return false;
+    };
+
+  % if cherrystrap.GIT_ENABLE and cherrystrap.GIT_LOCAL != cherrystrap.GIT_UPSTREAM and cherrystrap.COMMITS_BEHIND > 0 and not cherrystrap.IGNORE_UPDATES and (cherrystrap.LOGIN_STATUS or cherrystrap.HTTP_USER == ""):
+    $(".ajaxMsg").html(`
+      <div class="alert alert-info">
+        A <a href="https://github.com/${cherrystrap.GIT_USER}/${cherrystrap.GIT_REPO}/compare/${cherrystrap.GIT_LOCAL}...${cherrystrap.GIT_UPSTREAM}">
+        newer version</a> of ${cherrystrap.APP_NAME} is available.
+        You're ${cherrystrap.COMMITS_BEHIND} commits behind.
+        <a href="update">Update</a> or <a onclick="dismissAjax()" onmouseover="" style="cursor: pointer;">Dismiss</a>
+      </div>
+    `).show();
+  % endif
   </script>
 	${next.javascriptIncludes()}
 </body>

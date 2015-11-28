@@ -81,7 +81,7 @@ class WebInterface(object):
 
     @require()
     def logs(self):
-         return serve_template(templatename="logs.html", title="Log", lineList=cherrystrap.LOGLIST)
+        return serve_template(templatename="logs.html", title="Log", lineList=cherrystrap.LOGLIST)
     logs.exposed = True
 
     @require()
@@ -97,8 +97,24 @@ class WebInterface(object):
     def restart(self):
         cherrystrap.SIGNAL = 'restart'
         message = 'restarting ...'
-        return serve_template(templatename="shutdown.html", title="Restart", message=message, timer=10)
+        return serve_template(templatename="shutdown.html", title="Restart", message=message, timer=15)
     restart.exposed = True
+
+    @require()
+    def shutdown(self):
+        cherrystrap.config_write()
+        cherrystrap.SIGNAL = 'shutdown'
+        message = 'shutting down ...'
+        return serve_template(templatename="shutdown.html", title="Exit", message=message, timer=15)
+        return page
+    shutdown.exposed = True
+
+    @require()
+    def update(self):
+        cherrystrap.SIGNAL = 'update'
+        message = 'updating ...'
+        return serve_template(templatename="shutdown.html", title="Update", message=message, timer=30)
+    update.exposed = True
 
     # Safe to delete this def, it's just there as a reference
     def template(self):
@@ -162,7 +178,7 @@ class WebInterface(object):
         cherrystrap.GIT_LOCAL = git_local
         cherrystrap.GIT_STARTUP = git_startup
         try:
-            cherrystap.GIT_INTERVAL = int(git_interval)
+            cherrystrap.GIT_INTERVAL = int(git_interval)
         except:
             cherrystrap.GIT_INTERVAL = 6
         cherrystrap.GIT_OVERRIDE = git_override
@@ -171,3 +187,29 @@ class WebInterface(object):
         logger.info("Configuration saved successfully")
 
     configUpdate.exposed = True
+
+    def checkGithub(self):
+        # Make sure this is requested via ajax
+        request_type = cherrypy.request.headers.get('X-Requested-With')
+        if str(request_type).lower() == 'xmlhttprequest':
+            pass
+        else:
+            status_msg = "This page exists, but is not accessible via web browser"
+            return serve_template(templatename="index.html", title="404 - Page Not Found", msg=status_msg)
+
+        from cherrystrap import versioncheck
+        versioncheck.checkGithub()
+        cherrystrap.IGNORE_UPDATES = False
+    checkGithub.exposed = True
+
+    def ignoreUpdates(self):
+        # Make sure this is requested via ajax
+        request_type = cherrypy.request.headers.get('X-Requested-With')
+        if str(request_type).lower() == 'xmlhttprequest':
+            pass
+        else:
+            status_msg = "This page exists, but is not accessible via web browser"
+            return serve_template(templatename="index.html", title="404 - Page Not Found", msg=status_msg)
+
+        cherrystrap.IGNORE_UPDATES = True
+    ignoreUpdates.exposed = True

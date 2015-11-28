@@ -10,14 +10,14 @@
 <%def name="body()">
 <h1>Settings</h1>
 <ul class="nav nav-tabs" id="configTable">
-    <li><a href="#1" data-toggle="tab">Server</a></li>
-    <li><a href="#2" data-toggle="tab">Interface</a></li>
-    <li><a href="#3" data-toggle="tab">Database</a></li>
-    <li><a href="#4" data-toggle="tab">Update</a></li>
+    <li><a href="#server-config" data-toggle="tab">Server</a></li>
+    <li><a href="#interface-config" data-toggle="tab">Interface</a></li>
+    <li><a href="#database-config" data-toggle="tab">Database</a></li>
+    <li><a href="#updater-config" data-toggle="tab">Update</a></li>
 </ul>
 <form id="config_form">
   <div class="row col-md-12 tab-content">
-    <div class="tab-pane" id="1">
+    <div class="tab-pane" id="server-config">
       <br/>
       <div class="row">
         <div class="col-md-6 form-group">
@@ -61,7 +61,7 @@
       </div>
     </div>
 
-    <div class="tab-pane" id="2">
+    <div class="tab-pane" id="interface-config">
       <br/>
       <div class="row">
         <div class="col-md-6 form-group">
@@ -93,7 +93,7 @@
       </div>
     </div>
 
-    <div class="tab-pane" id="3">
+    <div class="tab-pane" id="database-config">
       <br/>
       <div class="row">
         <div class="col-md-12 form-group">
@@ -137,7 +137,7 @@
       </div>
     </div>
 
-    <div class="tab-pane" id="4">
+    <div class="tab-pane" id="updater-config">
       <br/>
       <div class="row">
         <div class="col-md-12 form-group">
@@ -230,7 +230,7 @@
           url: "configUpdate",
           data: $("#config_form").serialize(),
           beforeSend: function() {
-              $(".ajaxMsg").html('<div class="alert alert-warning"><img src="images/ajax-loader.gif"></div>').show();
+              $(".ajaxMsg").html('<div class="alert alert-warning"><img src="images/ajax-loader.gif"/></div>').show();
           },
           success: function(data)
           {

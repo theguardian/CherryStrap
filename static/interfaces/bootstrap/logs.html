@@ -4,7 +4,7 @@
 %>
 
 <%def name="headIncludes()">
-<link rel="stylesheet" href="//cdn.datatables.net/1.10.10/css/jquery.dataTables.min.css"/>
+<link rel="stylesheet" href="/css/dataTables.bootstrap.min.css"/>
 <title>${cherrystrap.APP_NAME}: ${title}</title>
 </%def>
 
@@ -23,11 +23,11 @@
 		</table>
 	</div>
 
-	<div class="row col-md-12">
+	<div class="well col-md-12" style="margin-top:15px">
 		<div class="col-md-4 col-md-offset-4 input-group">
-			<div class="input-group-addon">Refresh Rate:&nbsp;</div>
+			<div class="input-group-addon">Refresh:&nbsp;</div>
 			<select name="refresh_rate" class="form-control" id="refreshrate" onchange="setRefresh()">
-				<option value="0" selected="selected">Disabled</option>
+				<option value="0" selected="selected">0</option>
 				<option value="5">5</option>
 				<option value="15">15</option>
 				<option value="30">30</option>
@@ -41,16 +41,25 @@
 </%def>
 
 <%def name="javascriptIncludes()">
-	<script src="js/jquery.dataTables.min.js"></script>
+	<script src="/js/jquery.dataTables.min.js"/></script>
+	<script src="/js/dataTables.bootstrap.min.js"/></script>
 	<script>
 		$(document).ready(function() {
-			var dataTable = $('#log_table').dataTable({
+			$('#log_table').DataTable({
 				serverSide: true,
 				ajax: {
 					url: '/api/v1/getLog',
 					type: 'get',
 				},
-				order: [[ 0, 'desc' ]]
+				order: [[ 0, 'desc' ]],
+				createdRow: function (row, data, index) {
+					if (data[1] == "ERROR") {
+							$(row).addClass('alert-danger');
+					}
+					else if (data[1] == "WARNING") {
+							$(row).addClass('alert-warning');
+					}
+				}
 			});
 		});
 
@@ -66,7 +75,7 @@
 				}
 				if(refreshrate.value != 0)
 				{
-					timer = setInterval("$('#log_table').dataTable().fnDraw()",1000*refreshrate.value);
+					timer = setInterval("$('#log_table').DataTable().draw()",1000*refreshrate.value);
 				}
 			}
 		}

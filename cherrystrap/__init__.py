@@ -37,7 +37,9 @@ DBFILE = None
 CONFIGFILE = None
 CFG = None
 
-LOGIN_STATUS=False
+LOGIN_STATUS = False
+COMMITS_BEHIND = None
+IGNORE_UPDATES = False
 
 LOGDIR = None
 LOGLIST = []
@@ -395,35 +397,39 @@ def start():
 
     if __INITIALIZED__:
 
-        #Update check
-        if GIT_ENABLE:
-            if GIT_INTERVAL:
-                gitHours = GIT_INTERVAL
-            else:
-                gitHours = 0
-
         try:
             # Crons and scheduled jobs go here
             # testInterval = IntervalTrigger(weeks=0, days=0, hours=0, minutes=2, seconds=0, start_date=None, end_date=None, timezone=None)
             # testCron = CronTrigger(year=None, month=None, day=None, week=None, day_of_week=None, hour=None, minute='*/2', second=None, start_date=None, end_date=None, timezone=None)
             # SCHED.add_job(formatter.schedulerTest, testCron)
-            if gitHours != 0:
-                gitInterval = IntervalTrigger(weeks=0, days=0, hours=gitHours, minutes=0, seconds=0, start_date=None, end_date=None, timezone=None)
+            if GIT_ENABLE and GIT_INTERVAL != 0:
+                gitInterval = IntervalTrigger(weeks=0, days=0, hours=GIT_INTERVAL, minutes=0, seconds=0, start_date=None, end_date=None, timezone=None)
                 SCHED.add_job(versioncheck.checkGithub, gitInterval)
             SCHED.start()
+            for job in SCHED.get_jobs():
+                logger.info("Job scheduled: %s" % job)
             scheduler_started = True
         except Exception, e:
             logger.error("Can't start scheduled job(s): %s" % e)
 
-def shutdown(restart=False):
+def shutdown(restart=False, update=False):
     config_write()
-    logger.info('%s is shutting down ...' % APP_NAME)
     cherrypy.engine.exit()
 
     try:
         SCHED.shutdown(wait=True)
     except Exception, e:
         logger.error("Can't shutdown scheduler: %s" % e)
+
+    if not restart and not update:
+        logger.info('%s is shutting down ...' % APP_NAME)
+
+    if update:
+        logger.info('%s is updating ...' % APP_NAME)
+        try:
+            versioncheck.update()
+        except Exception as e:
+            logger.warn('%s failed to update: %s. Restarting ...' % (APP_NAME, e))
 
     if PIDFILE:
         logger.info('Removing pidfile %s' % PIDFILE)
