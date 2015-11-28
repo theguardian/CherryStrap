@@ -44,13 +44,13 @@ IGNORE_UPDATES = False
 LOGDIR = None
 LOGLIST = []
 
-APP_NAME = 'CherryStrap'
+APP_NAME = None
 HTTP_ROOT = None
 HTTP_HOST = None
 HTTP_PORT = None
 HTTPS_ENABLED = False
-HTTPS_KEY = 'keys/server.key'
-HTTPS_CERT = 'keys/server.crt'
+HTTPS_KEY = None
+HTTPS_CERT = None
 VERIFY_SSL = True
 LAUNCH_BROWSER = False
 
@@ -59,42 +59,22 @@ HTTP_PASS = None
 HTTP_LOOK = None
 API_TOKEN = None
 
-DATABASE_TYPE = 'sqlite'
+DATABASE_TYPE = None
 MYSQL_HOST = None
 MYSQL_PORT = None
 MYSQL_USER = None
 MYSQL_PASS = None
 
-GIT_USER = 'theguardian'
-GIT_REPO = 'CherryStrap'
-GIT_BRANCH = 'master'
+GIT_USER = None
+GIT_REPO = None
+GIT_BRANCH = None
 GIT_UPSTREAM = None
 GIT_LOCAL = None
-GIT_OVERRIDE = True
-
-# Attempt to find location of git in this environment
-output = err = None
-cmd = 'which git'
-try:
-    logger.debug('Trying to execute: "' + cmd + '" with shell in ' + os.getcwd())
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True, cwd=os.getcwd())
-    output, err = p.communicate()
-    output = output.strip()
-    logger.debug('Git output: ' + output)
-except OSError:
-    logger.debug('Command failed: %s', cmd)
-
-if not output or 'not found' in output or "not recognized as an internal or external command" in output:
-    logger.debug('Unable to find git with command ' + cmd)
-    GIT_ENABLE = False
-    GIT_PATH = None
-    GIT_STARTUP = False
-    GIT_INTERVAL = 0
-else:
-    GIT_ENABLE = True
-    GIT_PATH = output
-    GIT_STARTUP = True
-    GIT_INTERVAL = 12
+GIT_OVERRIDE = False
+GIT_ENABLE = False
+GIT_PATH = None
+GIT_STARTUP = False
+GIT_INTERVAL = 0
 
 def CheckSection(sec):
     """ Check if INI section exists, if not create it """
@@ -170,6 +150,30 @@ def initialize():
         if HTTP_PORT < 21 or HTTP_PORT > 65535:
             HTTP_PORT = 7889
 
+        # Attempt to find location of git in this environment
+        output = err = None
+        cmd = 'which git'
+        try:
+            logger.debug('Trying to execute: "' + cmd + '" with shell in ' + os.getcwd())
+            p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True, cwd=os.getcwd())
+            output, err = p.communicate()
+            output = output.strip()
+            logger.debug('Git output: ' + output)
+        except OSError:
+            logger.debug('Command failed: %s', cmd)
+
+        if not output or 'not found' in output or "not recognized as an internal or external command" in output:
+            logger.debug('Unable to find git with command ' + cmd)
+            git_enable = 0
+            git_path = ''
+            git_startup = 0
+            git_interval = 0
+        else:
+            git_enable = 1
+            git_path = output
+            git_startup = 1
+            git_interval = 12
+
         APP_NAME = check_setting_str(CFG, 'Server', 'app_name', 'CherryStrap')
         HTTP_ROOT = check_setting_str(CFG, 'Server', 'http_root', '')
         LOGDIR = check_setting_str(CFG, 'Server', 'logdir', '')
@@ -191,16 +195,16 @@ def initialize():
         MYSQL_USER = check_setting_str(CFG, 'Database', 'mysql_user', '')
         MYSQL_PASS = check_setting_str(CFG, 'Database', 'mysql_pass', '')
 
-        GIT_ENABLE = bool(check_setting_int(CFG, 'Git', 'git_enable', 1))
-        GIT_PATH = check_setting_str(CFG, 'Git', 'git_path', '/usr/bin/git')
+        GIT_ENABLE = bool(check_setting_int(CFG, 'Git', 'git_enable', git_enable))
+        GIT_PATH = check_setting_str(CFG, 'Git', 'git_path', git_path)
         GIT_USER = check_setting_str(CFG, 'Git', 'git_user', 'theguardian')
         GIT_REPO = check_setting_str(CFG, 'Git', 'git_repo', 'CherryStrap')
         GIT_BRANCH = check_setting_str(CFG, 'Git', 'git_branch', 'master')
         GIT_UPSTREAM = check_setting_str(CFG, 'Git', 'git_upstream', '')
         GIT_LOCAL = check_setting_str(CFG, 'Git', 'git_local', '')
-        GIT_STARTUP = bool(check_setting_int(CFG, 'Git', 'git_startup', 1))
-        GIT_INTERVAL = check_setting_int(CFG, 'Git', 'git_interval', 6)
-        GIT_OVERRIDE = bool(check_setting_int(CFG, 'Git', 'git_override', 1))
+        GIT_STARTUP = bool(check_setting_int(CFG, 'Git', 'git_startup', git_startup))
+        GIT_INTERVAL = check_setting_int(CFG, 'Git', 'git_interval', git_interval)
+        GIT_OVERRIDE = bool(check_setting_int(CFG, 'Git', 'git_override', 0))
 
         if not LOGDIR:
             LOGDIR = os.path.join(DATADIR, 'Logs')
