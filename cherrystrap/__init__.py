@@ -74,7 +74,7 @@ GIT_UPSTREAM = None
 GIT_LOCAL = None
 GIT_STARTUP = True
 GIT_INTERVAL = 6
-GIT_OVERRIDE = False
+GIT_OVERRIDE = True
 
 def CheckSection(sec):
     """ Check if INI section exists, if not create it """
@@ -180,7 +180,7 @@ def initialize():
         GIT_LOCAL = check_setting_str(CFG, 'Git', 'git_local', '')
         GIT_STARTUP = bool(check_setting_int(CFG, 'Git', 'git_startup', 1))
         GIT_INTERVAL = check_setting_int(CFG, 'Git', 'git_interval', 6)
-        GIT_OVERRIDE = bool(check_setting_int(CFG, 'Git', 'git_override', 0))
+        GIT_OVERRIDE = bool(check_setting_int(CFG, 'Git', 'git_override', 1))
 
         if not LOGDIR:
             LOGDIR = os.path.join(DATADIR, 'Logs')
