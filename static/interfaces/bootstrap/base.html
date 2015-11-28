@@ -64,7 +64,9 @@
                 %endif
                 <li class="divider"></li>
                 <li class="dropdown-header">Server</li>
-                <li><a onclick="checkUpdates()" onmouseover="" style="cursor: pointer;"><span class="glyphicon glyphicon-repeat"></span>&nbsp;Check for Updates</a></li>
+                %if cherrystrap.GIT_ENABLE:
+                  <li><a onclick="checkUpdates()" onmouseover="" style="cursor: pointer;"><span class="glyphicon glyphicon-repeat"></span>&nbsp;Check for Updates</a></li>
+                %endif
                 <li><a href="#" data-toggle="modal" data-target="#defaultModal"
                   data-utitle="Restart?"
                   data-ubody="Are you sure you want to restart ${cherrystrap.APP_NAME}?"

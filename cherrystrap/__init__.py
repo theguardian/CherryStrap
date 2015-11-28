@@ -21,7 +21,7 @@ PROG_DIR = None
 ARGS = None
 SIGNAL = None
 
-LOGLEVEL = 1
+LOGLEVEL = 2
 DAEMON = False
 PIDFILE = None
 
@@ -65,16 +65,36 @@ MYSQL_PORT = None
 MYSQL_USER = None
 MYSQL_PASS = None
 
-GIT_ENABLE = True
-GIT_PATH = None
 GIT_USER = 'theguardian'
 GIT_REPO = 'CherryStrap'
 GIT_BRANCH = 'master'
 GIT_UPSTREAM = None
 GIT_LOCAL = None
-GIT_STARTUP = True
-GIT_INTERVAL = 6
 GIT_OVERRIDE = True
+
+# Attempt to find location of git in this environment
+output = err = None
+cmd = 'which git'
+try:
+    logger.debug('Trying to execute: "' + cmd + '" with shell in ' + os.getcwd())
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True, cwd=os.getcwd())
+    output, err = p.communicate()
+    output = output.strip()
+    logger.debug('Git output: ' + output)
+except OSError:
+    logger.debug('Command failed: %s', cmd)
+
+if not output or 'not found' in output or "not recognized as an internal or external command" in output:
+    logger.debug('Unable to find git with command ' + cmd)
+    GIT_ENABLE = False
+    GIT_PATH = None
+    GIT_STARTUP = False
+    GIT_INTERVAL = 0
+else:
+    GIT_ENABLE = True
+    GIT_PATH = output
+    GIT_STARTUP = True
+    GIT_INTERVAL = 12
 
 def CheckSection(sec):
     """ Check if INI section exists, if not create it """
