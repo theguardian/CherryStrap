@@ -213,3 +213,15 @@ class WebInterface(object):
 
         cherrystrap.IGNORE_UPDATES = True
     ignoreUpdates.exposed = True
+
+    def ajaxUpdate(self):
+        # Make sure this is requested via ajax
+        request_type = cherrypy.request.headers.get('X-Requested-With')
+        if str(request_type).lower() == 'xmlhttprequest':
+            pass
+        else:
+            status_msg = "This page exists, but is not accessible via web browser"
+            return serve_template(templatename="index.html", title="404 - Page Not Found", msg=status_msg)
+
+        return serve_template(templatename="ajaxUpdate.html")
+    ajaxUpdate.exposed = True
