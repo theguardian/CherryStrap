@@ -117,8 +117,8 @@ def checkGithub():
     try:
         result = urllib2.urlopen(url).read()
         version = json.JSONDecoder().decode(result)
-    except:
-        logger.warn('Could not get the latest version from GitHub. Are you running a local development version?')
+    except Exception, e:
+        logger.warn('Could not get the latest version from GitHub. Are you running a local development version?: %s' % e)
         return cherrystrap.GIT_LOCAL
 
     cherrystrap.GIT_UPSTREAM = version['sha']
