@@ -144,7 +144,7 @@ def checkGithub():
 
     try:
         cherrystrap.COMMITS_BEHIND = int(commits['behind_by'])
-        logger.debug("In total, %d commits behind", cherrystrap.COMMITS_BEHIND)
+        logger.debug("In total, %d commits behind" % cherrystrap.COMMITS_BEHIND)
     except KeyError:
         logger.info('Cannot compare versions. Are you running a local development version?')
         cherrystrap.COMMITS_BEHIND = 0

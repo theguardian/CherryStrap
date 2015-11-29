@@ -235,6 +235,15 @@ def initialize():
         except Exception, e:
             logger.error("Can't connect to the database: %s" % e)
 
+        if not VERIFY_SSL:
+            try:
+                import ssl
+                ssl._create_default_https_context = ssl._create_unverified_context
+                logger.info("SSL verification disabled per user preferences")
+            except Exception, e:
+                logger.warn("There was an error disabling SSL verification: %s" % s)
+                pass
+
         # Get the currently installed version. Returns None, 'win32' or the git
         # hash.
         GIT_LOCAL, GIT_BRANCH = versioncheck.getVersion()

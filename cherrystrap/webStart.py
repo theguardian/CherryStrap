@@ -7,14 +7,6 @@ from cherrystrap.formatter import create_https_certificates
 
 def initialize(options={}):
 
-    verify_ssl = options['verify_ssl']
-    if not verify_ssl:
-        try:
-            import ssl
-            ssl._create_default_https_context = ssl._create_unverified_context
-        except:
-            pass
-
     https_enabled = options['https_enabled']
     https_cert = options['https_cert']
     https_key = options['https_key']
