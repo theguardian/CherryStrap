@@ -235,6 +235,7 @@ def initialize():
         except Exception, e:
             logger.error("Can't connect to the database: %s" % e)
 
+        # Disable SSL verification for systems where SSL is broken
         if not VERIFY_SSL:
             try:
                 import ssl
