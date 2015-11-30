@@ -183,30 +183,30 @@ def initialize():
 
             if not output or 'not found' in output or "not recognized as an internal or external command" in output:
                 logger.debug('Unable to find git with command ' + cmd)
-                git_enable = False
+                git_enabled = False
                 git_path = ''
                 git_startup = False
-                git_interval = False
+                git_interval = 0
             else:
-                git_enable = True
+                git_enabled = True
                 git_path = output
                 git_startup = True
                 git_interval = 12
         else:
-                git_enable = False
+                git_enabled = False
                 git_path = ''
                 git_startup = False
-                git_interval = False
+                git_interval = 0
 
         APP_NAME = check_setting_str(CFG, 'Server', 'app_name', 'CherryStrap')
         HTTP_ROOT = check_setting_str(CFG, 'Server', 'http_root', '')
         LOGDIR = check_setting_str(CFG, 'Server', 'logdir', '')
         HTTP_HOST = check_setting_str(CFG, 'Server', 'http_host', '0.0.0.0')
-        HTTPS_ENABLED = check_setting_bool(CFG, 'Server', 'https_enabled', 'False')
+        HTTPS_ENABLED = check_setting_bool(CFG, 'Server', 'https_enabled', False)
         HTTPS_KEY = check_setting_str(CFG, 'Server', 'https_key', 'keys/server.key')
         HTTPS_CERT = check_setting_str(CFG, 'Server', 'https_cert', 'keys/server.crt')
-        VERIFY_SSL = check_setting_bool(CFG, 'Server', 'verify_ssl', 'True')
-        LAUNCH_BROWSER = check_setting_bool(CFG, 'Server', 'launch_browser', 'False')
+        VERIFY_SSL = check_setting_bool(CFG, 'Server', 'verify_ssl', True)
+        LAUNCH_BROWSER = check_setting_bool(CFG, 'Server', 'launch_browser', False)
 
         HTTP_USER = check_setting_str(CFG, 'Interface', 'http_user', '')
         HTTP_PASS = check_setting_str(CFG, 'Interface', 'http_pass', '')
@@ -219,7 +219,7 @@ def initialize():
         MYSQL_USER = check_setting_str(CFG, 'Database', 'mysql_user', '')
         MYSQL_PASS = check_setting_str(CFG, 'Database', 'mysql_pass', '')
 
-        GIT_ENABLED = check_setting_bool(CFG, 'Git', 'git_enable', git_enable)
+        GIT_ENABLED = check_setting_bool(CFG, 'Git', 'git_enabled', git_enabled)
         GIT_PATH = check_setting_str(CFG, 'Git', 'git_path', git_path)
         GIT_USER = check_setting_str(CFG, 'Git', 'git_user', 'theguardian')
         GIT_REPO = check_setting_str(CFG, 'Git', 'git_repo', 'CherryStrap')
@@ -228,7 +228,7 @@ def initialize():
         GIT_LOCAL = check_setting_str(CFG, 'Git', 'git_local', '')
         GIT_STARTUP = check_setting_bool(CFG, 'Git', 'git_startup', git_startup)
         GIT_INTERVAL = check_setting_int(CFG, 'Git', 'git_interval', git_interval)
-        GIT_OVERRIDE = check_setting_bool(CFG, 'Git', 'git_override', 'False')
+        GIT_OVERRIDE = check_setting_bool(CFG, 'Git', 'git_override', False)
 
         if not LOGDIR:
             LOGDIR = os.path.join(DATADIR, 'Logs')
@@ -383,7 +383,7 @@ def config_write():
     new_config['Database']['mysql_pass'] = MYSQL_PASS
 
     new_config['Git'] = {}
-    new_config['Git']['git_enable'] = GIT_ENABLED
+    new_config['Git']['git_enabled'] = GIT_ENABLED
     new_config['Git']['git_path'] = GIT_PATH
     new_config['Git']['git_user'] = GIT_USER
     new_config['Git']['git_repo'] = GIT_REPO
