@@ -9,12 +9,12 @@ from cherrystrap import logger, formatter
 
 db_lock = threading.Lock()
 
-def dbFilename(filename="%s.db" % cherrystrap.APP_NAME):
+def dbFilename(filename="sqlite3.db"):
     return os.path.join(cherrystrap.DATADIR, filename)
 
 class SQLite_DBConnection:
 
-    def __init__(self, filename="%s.db" % cherrystrap.APP_NAME):
+    def __init__(self, filename="sqlite3.db"):
         try:
             global sqlite3
             import sqlite3

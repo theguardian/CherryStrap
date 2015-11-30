@@ -2,14 +2,14 @@
     import cherrystrap
 %>
 <script>
-  % if cherrystrap.GIT_ENABLE and not cherrystrap.GIT_LOCAL:
+  % if cherrystrap.GIT_ENABLED and not cherrystrap.GIT_LOCAL:
     $(".ajaxMsg").html(`
       <div class="alert alert-warning">
         You're running an unknown version of ${cherrystrap.APP_NAME}. <a href="update">Update</a> or
         <a onclick="dismissAjax()">Dismiss</a>
       </div>
     `).show();
-  % elif cherrystrap.GIT_ENABLE and cherrystrap.GIT_LOCAL != cherrystrap.GIT_UPSTREAM and cherrystrap.COMMITS_BEHIND > 0:
+  % elif cherrystrap.GIT_ENABLED and cherrystrap.GIT_LOCAL != cherrystrap.GIT_UPSTREAM and cherrystrap.COMMITS_BEHIND > 0:
     $(".ajaxMsg").html(`
       <div class="alert alert-info">
         A <a href="https://github.com/${cherrystrap.GIT_USER}/${cherrystrap.GIT_REPO}/compare/${cherrystrap.GIT_LOCAL}...${cherrystrap.GIT_UPSTREAM}">
@@ -18,7 +18,7 @@
         <a href="update">Update</a> or <a onclick="dismissAjax()" onmouseover="" style="cursor: pointer;">Dismiss</a>
       </div>
     `).show();
-  % elif cherrystrap.GIT_ENABLE and cherrystrap.GIT_LOCAL == cherrystrap.GIT_UPSTREAM and cherrystrap.COMMITS_BEHIND == 0:
+  % elif cherrystrap.GIT_ENABLED and cherrystrap.GIT_LOCAL == cherrystrap.GIT_UPSTREAM and cherrystrap.COMMITS_BEHIND == 0:
     $(".ajaxMsg").html(`
     <div class="alert alert-success">
       You're running the latest version of ${cherrystrap.APP_NAME}

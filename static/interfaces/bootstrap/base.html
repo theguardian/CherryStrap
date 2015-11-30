@@ -64,7 +64,7 @@
                 %endif
                 <li class="divider"></li>
                 <li class="dropdown-header">Server</li>
-                %if cherrystrap.GIT_ENABLE:
+                %if cherrystrap.GIT_ENABLED:
                   <li><a onclick="checkUpdates()" onmouseover="" style="cursor: pointer;"><span class="glyphicon glyphicon-repeat"></span>&nbsp;Check for Updates</a></li>
                 %endif
                 <li><a href="#" data-toggle="modal" data-target="#defaultModal"
@@ -147,7 +147,7 @@
         return false;
     };
 
-  % if cherrystrap.GIT_ENABLE and cherrystrap.GIT_LOCAL != cherrystrap.GIT_UPSTREAM and cherrystrap.COMMITS_BEHIND > 0 and not cherrystrap.IGNORE_UPDATES and (cherrystrap.LOGIN_STATUS or cherrystrap.HTTP_USER == ""):
+  % if cherrystrap.GIT_ENABLED and cherrystrap.GIT_LOCAL != cherrystrap.GIT_UPSTREAM and cherrystrap.COMMITS_BEHIND > 0 and not cherrystrap.IGNORE_UPDATES and (cherrystrap.LOGIN_STATUS or cherrystrap.HTTP_USER == ""):
     $(".ajaxMsg").html(`
       <div class="alert alert-info">
         A <a href="https://github.com/${cherrystrap.GIT_USER}/${cherrystrap.GIT_REPO}/compare/${cherrystrap.GIT_LOCAL}...${cherrystrap.GIT_UPSTREAM}">

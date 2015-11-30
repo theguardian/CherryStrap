@@ -22,41 +22,41 @@
       <div class="row">
         <div class="col-md-6 form-group">
           <label for="appName">App Name</label>
-          <input type="text" name="app_name" value="${config['app_name']}" class="form-control" id="appName" placeholder="App Name">
+          <input type="text" name="app_name" value="" class="form-control" id="appName" placeholder="App Name">
         </div>
         <div class="col-md-6 form-group">
-          <label for="logDirectory">Log Directory</label>
-          <input type="text" name="logdir" value="${config['logdir']}" class="form-control" id="logDirectory" placeholder="Log Directory">
+          <label for="logDir">Log Directory</label>
+          <input type="text" name="logdir" value="" class="form-control" id="logDir" placeholder="Log Directory">
         </div>
         <div class="col-md-6 form-group">
           <label for="httpHost">Broadcast Address</label>
-          <input type="text" name="http_host" value="${config['http_host']}" class="form-control" id="httpHost" placeholder="Broadcast Address">
+          <input type="text" name="http_host" value="" class="form-control" id="httpHost" placeholder="Broadcast Address">
         </div>
         <div class="col-md-6 form-group">
           <label for="httpPort">Broadcast Port</label>
-          <input type="text" name="http_port" value="${config['http_port']}" class="form-control" id="httpPort" placeholder="Broadcast Port">
+          <input type="text" name="http_port" value="" class="form-control" id="httpPort" placeholder="Broadcast Port">
         </div>
         <div class="col-md-12 form-group">
-          <label for="httpsEnabled">&nbsp;Broadcast SSL</label>
-          <input type="checkbox" name="https_enabled" value=1 ${config['https_enabled']} class="checkbox pull-left" id="httpsEnabled">
+          <label for="sslEnabled">&nbsp;Broadcast SSL</label>
+          <input type="checkbox" name="https_enabled" class="checkbox pull-left" id="sslEnabled">
         </div>
         <div class="col-md-12" id="sslKeyGroup">
           <div class="col-md-6 form-group">
             <label for="sslKey">SSL Key</label>
-            <input type="text" name="https_key" value="${config['https_key']}" class="form-control" id="sslKey" placeholder="SSL Key">
+            <input type="text" name="https_key" value="" class="form-control" id="sslKey" placeholder="SSL Key">
           </div>
           <div class="col-md-6 form-group">
             <label for="sslCert">SSL Cert</label>
-            <input type="text" name="https_cert" value="${config['https_cert']}" class="form-control" id="sslCert" placeholder="SSL Cert">
+            <input type="text" name="https_cert" value="" class="form-control" id="sslCert" placeholder="SSL Cert">
           </div>
         </div>
         <div class="col-md-6 form-group">
-          <label for="verifySSL">&nbsp;Verify SSL</label>
-          <input type="checkbox" name="verify_ssl" value=1 ${config['verify_ssl']} class="checkbox pull-left" id="verifySSL">
+          <label for="sslVerify">&nbsp;Verify SSL</label>
+          <input type="checkbox" name="verify_ssl" class="checkbox pull-left" id="sslVerify">
         </div>
         <div class="col-md-6 form-group">
           <label for="launchBrowser">&nbsp;Launch Browser</label>
-          <input type="checkbox" name="launch_browser" value=value=1 ${config['launch_browser']} class="checkbox pull-left" id="launchBrowser">
+          <input type="checkbox" name="launch_browser" class="checkbox pull-left" id="launchBrowser">
         </div>
       </div>
     </div>
@@ -65,30 +65,24 @@
       <br/>
       <div class="row">
         <div class="col-md-6 form-group">
-          <label for="httpUserame">Username</label>
-          <input type="text" name="http_user" value="${config['http_user']}" class="form-control" id="httpUsername" placeholder="Username">
+          <label for="httpUser">Username</label>
+          <input type="text" name="http_user" value="" class="form-control" id="httpUser" placeholder="Username">
         </div>
         <div class="col-md-6 form-group">
-          <label for="httpPassword">Password</label>
-          <input type="password" name="http_pass" value="${config['http_pass']}" class="form-control" id="httpPassword" placeholder="Password">
+          <label for="httpPass">Password</label>
+          <input type="password" name="http_pass" value="" class="form-control" id="httpPass" placeholder="********">
         </div>
         <div class="col-md-6 form-group">
-          <label for="httpTheme">Theme</label>
-          <select name="http_look" class="form-control" id="httpTheme">
+          <label for="httpLook">Theme</label>
+          <select name="http_look" class="form-control" id="httpLook">
           %for http_look in config['http_look_list']:
-              <%
-                  if http_look == cherrystrap.HTTP_LOOK:
-                      selected = 'selected="selected"'
-                  else:
-                      selected = ''
-              %>
-              <option value="${http_look}" ${selected}>${http_look}</option>
+              <option value="${http_look}" id="${http_look}">${http_look}</option>
           %endfor
           </select>
         </div>
         <div class="col-md-6 form-group">
           <label for="apiToken">API Token</label>
-          <input type="text" name="api_token" value="${config['api_token']}" class="form-control" id="apiToken" placeholder="API Token" readonly>
+          <input type="text" name="api_token" value="" class="form-control" id="apiToken" placeholder="API Token" readonly>
         </div>
       </div>
     </div>
@@ -99,15 +93,8 @@
         <div class="col-md-12 form-group">
           <label for="dbType">Database Type</label>
           <select name="database_type" class="form-control" id="dbType">
-            %for database_type in ['sqlite', 'mysql']:
-                <%
-                    if database_type == cherrystrap.DATABASE_TYPE:
-                        selected = 'selected="selected"'
-                    else:
-                        selected = ''
-                %>
-                <option value="${database_type}" ${selected}>${database_type}</option>
-            %endfor
+            <option value="sqlite" id="sqlite">sqlite</option>
+            <option value="mysql" id="mysql">mysql</option>
           </select>
         </div>
         <div class="col-md-12" id="mysqlGroup">
@@ -119,19 +106,19 @@
           </div>
           <div class="col-md-6 form-group">
             <label for="mysqlHost">MySQL Address</label>
-            <input type="text" name="mysql_host" value="${config['mysql_host']}" class="form-control" id="mysqlHost" placeholder="MySQL Address">
+            <input type="text" name="mysql_host" value="" class="form-control" id="mysqlHost" placeholder="MySQL Address">
           </div>
           <div class="col-md-6 form-group">
             <label for="mysqlPort">MySQL Port</label>
-            <input type="text" name="mysql_port" value="${config['mysql_port']}" class="form-control" id="mysqlPort" placeholder="MySQL Port">
+            <input type="text" name="mysql_port" value="" class="form-control" id="mysqlPort" placeholder="MySQL Port">
           </div>
           <div class="col-md-6 form-group">
-            <label for="mysqlUserame">MySQL Username</label>
-            <input type="text" name="mysql_user" value="${config['mysql_user']}" class="form-control" id="mysqlUsername" placeholder="MySQL Username">
+            <label for="mysqlUser">MySQL Username</label>
+            <input type="text" name="mysql_user" value="" class="form-control" id="mysqlUser" placeholder="MySQL Username">
           </div>
           <div class="col-md-6 form-group">
-            <label for="mysqlPassword">MySQL Password</label>
-            <input type="password" name="mysql_pass" value="${config['mysql_pass']}" class="form-control" id="mysqlPassword" placeholder="MySQL Password">
+            <label for="mysqlPass">MySQL Password</label>
+            <input type="password" name="mysql_pass" value="" class="form-control" id="mysqlPass" placeholder="********">
           </div>
         </div>
       </div>
@@ -142,47 +129,47 @@
       <div class="row">
         <div class="col-md-12 form-group">
           <label for="gitEnabled">&nbsp;Enable Git Updater</label>
-          <input type="checkbox" name="git_enable" value=1 ${config['git_enable']} class="checkbox pull-left" id="gitEnabled">
+          <input type="checkbox" name="git_enabled" class="checkbox pull-left" id="gitEnabled">
         </div>
         <div class="col-md-12" id="gitGroup">
           <div class="col-md-6 form-group">
             <label for="gitPath">Git Path</label>
-            <input type="text" name="git_path" value="${config['git_path']}" class="form-control" id="gitPath" placeholder="Git Path">
+            <input type="text" name="git_path" value="" class="form-control" id="gitPath" placeholder="Git Path">
           </div>
           <div class="col-md-6 form-group">
             <label for="gitUser">Git User</label>
-            <input type="text" name="git_user" value="${config['git_user']}" class="form-control" id="gitUser" placeholder="Git User" readonly>
+            <input type="text" name="git_user" value="" class="form-control" id="gitUser" placeholder="Git User" readonly>
           </div>
           <div class="col-md-6 form-group">
             <label for="gitRepo">Git Repo</label>
-            <input type="text" name="git_repo" value="${config['git_repo']}" class="form-control" id="gitRepo" placeholder="Git Repo" readonly>
+            <input type="text" name="git_repo" value="" class="form-control" id="gitRepo" placeholder="Git Repo" readonly>
           </div>
           <div class="col-md-6 form-group">
             <label for="gitBranch">Git Branch</label>
-            <input type="text" name="git_branch" value="${config['git_branch']}" class="form-control" id="gitBranch" placeholder="Git Branch" readonly>
+            <input type="text" name="git_branch" value="" class="form-control" id="gitBranch" placeholder="Git Branch" readonly>
           </div>
           <div class="col-md-6 form-group">
             <label for="gitUpstream">Git Remote Version</label>
-            <input type="text" name="git_upstream" value="${config['git_upstream']}" class="form-control" id="gitUpstream" placeholder="Git Remote Version" readonly>
+            <input type="text" name="git_upstream" value="" class="form-control" id="gitUpstream" placeholder="Git Remote Version" readonly>
           </div>
           <div class="col-md-6 form-group">
             <label for="gitLocal">Git Local Version</label>
-            <input type="text" name="git_local" value="${config['git_local']}" class="form-control" id="gitLocal" placeholder="Git Local Version" readonly>
+            <input type="text" name="git_local" value="" class="form-control" id="gitLocal" placeholder="Git Local Version" readonly>
           </div>
           <div class="col-md-6 form-group">
             <label for="gitStartup">&nbsp;Check for Updates on Startup</label>
-            <input type="checkbox" name="git_startup" value=1 ${config['git_startup']} class="checkbox pull-left" id="gitStartup">
+            <input type="checkbox" name="git_startup" class="checkbox pull-left" id="gitStartup">
           </div>
           <div class="col-md-6 form-group">
             <label for="gitInterval">Check for Updates</label>
             <div class="input-group">
-              <input type="text" name="git_interval" value="${config['git_interval']}" class="form-control" id="gitInterval" placeholder="6">
+              <input type="text" name="git_interval" value="" class="form-control" id="gitInterval" placeholder="12">
               <div class="input-group-addon">Hours</div>
             </div>
           </div>
           <div class="col-md-6 form-group" style="visibility:hidden;">
             <label for="gitOverride">&nbsp;Do Not Override Branch?</label>
-            <input type="checkbox" name="git_override" value=1 ${config['git_override']} class="checkbox pull-left" id="gitOverride" readonly>
+            <input type="checkbox" name="git_override" class="checkbox pull-left" id="gitOverride" readonly>
           </div>
         </div>
       </div>
@@ -194,19 +181,47 @@
 
 <%def name="javascriptIncludes()">
 <script>
-  $('#configTable a:first').tab('show');
 
-  if (!$("#httpsEnabled").is(":checked")) {
-    $('#sslKeyGroup').hide()
-  }
+  $.getJSON('/api/v1/settings?token=${cherrystrap.API_TOKEN}', function(data) {
+    var $inputs = $('form input');
+    $.each(data, function(key, value) {
 
-  $('#httpsEnabled').click(function() {
-    $('#sslKeyGroup')[this.checked ? "show" : "hide"]();
+      if ($('#'+key).attr('type') == 'text' || $('#'+key).attr('type') == 'password') {
+        $inputs.filter(function() {
+          return key == this.id;
+        }).val(value);
+      }
+      else if ($('#'+key).attr('type') == 'checkbox' && value == true) {
+        $inputs.filter(function() {
+          return key == this.id;
+        }).prop('checked', true);
+      }
+
+      if (key == 'dbType') {
+        $('#'+value).prop('selected', true);
+      }
+      if (key == 'httpLook') {
+        $('#'+value).prop('selected', true);
+      }
+
+      if (key == 'sslEnabled' && value == false) {
+        $('#sslKeyGroup').hide();
+      }
+      if (key == 'dbType' && value == 'sqlite') {
+        $('#mysqlGroup').hide();
+      }
+      if (key == 'gitEnabled' && value == false) {
+        $('#gitGroup').hide();
+      }
+
+    });
   });
 
-  if($('#dbType').val() == 'sqlite'){
-       $('#mysqlGroup').hide();
-   }
+  $('#configTable a:first').tab('show');
+
+  $('#sslEnabled').click(function() {
+    $('#sslKeyGroup')[this.checked ? "show" : "hide"]();
+  });
 
   $('#dbType').change(function(){
      if($(this).val() == 'sqlite'){
@@ -216,10 +231,6 @@
      $('#mysqlGroup').show();
   });
 
-  if (!$("#gitEnabled").is(":checked")) {
-    $('#gitGroup').hide()
-  }
-
   $('#gitEnabled').click(function() {
     $('#gitGroup')[this.checked ? "show" : "hide"]();
   });
@@ -227,8 +238,8 @@
   $("#config_form").submit(function() {
       $.ajax({
           type: "POST",
-          url: "configUpdate",
-          data: $("#config_form").serialize(),
+          url: "/api/v1/settings?token=${cherrystrap.API_TOKEN}",
+          data: JSON.stringify($("#config_form").serialize()),
           beforeSend: function() {
               $(".ajaxMsg").html('<div class="alert alert-warning"><img src="images/ajax-loader.gif"/></div>').show();
           },

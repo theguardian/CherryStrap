@@ -7,7 +7,7 @@ runtime commands like daemonizing, restarting, and shutting down the web app.
 
 from __future__ import with_statement
 
-import os, sys, subprocess, threading, cherrypy, datetime, uuid
+import os, sys, subprocess, threading, cherrypy, datetime, uuid, ast
 
 from lib.configobj.configobj import ConfigObj
 from lib.apscheduler.schedulers.background import BackgroundScheduler
@@ -71,7 +71,7 @@ GIT_BRANCH = None
 GIT_UPSTREAM = None
 GIT_LOCAL = None
 GIT_OVERRIDE = False
-GIT_ENABLE = False
+GIT_ENABLED = False
 GIT_PATH = None
 GIT_STARTUP = False
 GIT_INTERVAL = 0
@@ -95,31 +95,46 @@ def check_setting_int(config, cfg_name, item_name, def_val):
         my_val = def_val
         try:
             config[cfg_name][item_name] = my_val
+            logger.debug("Bad value for %s in config.ini. Reverting to default" % item_name)
         except:
             config[cfg_name] = {}
             config[cfg_name][item_name] = my_val
+            logger.debug("Bad default value for %s. Application may break" % item_name)
     logger.debug(item_name + " -> " + str(my_val))
+    return my_val
+
+################################################################################
+# Check_setting_bool                                                            #
+################################################################################
+def check_setting_bool(config, cfg_name, item_name, def_val):
+    try:
+        my_val = ast.literal_eval(config[cfg_name][item_name])
+    except:
+        my_val = def_val
+        try:
+            config[cfg_name][item_name] = ast.literal_eval(my_val)
+            logger.debug("Bad value for %s in config.ini. Reverting to default" % item_name)
+        except:
+            config[cfg_name] = {}
+            config[cfg_name][item_name] = my_val
+            logger.debug("Bad default value for %s. Application may break" % item_name)
     return my_val
 
 ################################################################################
 # Check_setting_str                                                            #
 ################################################################################
-def check_setting_str(config, cfg_name, item_name, def_val, log=True):
+def check_setting_str(config, cfg_name, item_name, def_val):
     try:
-        my_val = config[cfg_name][item_name]
+        my_val = str(config[cfg_name][item_name])
     except:
         my_val = def_val
         try:
-            config[cfg_name][item_name] = my_val
+            config[cfg_name][item_name] = ast.literal_eval(my_val)
+            logger.debug("Bad value for %s in config.ini. Reverting to default" % item_name)
         except:
             config[cfg_name] = {}
             config[cfg_name][item_name] = my_val
-
-    if log:
-        logger.debug(item_name + " -> " + my_val)
-    else:
-        logger.debug(item_name + " -> ******")
-
+            logger.debug("Bad default value for %s. Application may break" % item_name)
     return my_val
 
 def initialize():
@@ -131,7 +146,7 @@ def initialize():
         HTTP_USER, HTTP_PASS, HTTP_ROOT, HTTP_LOOK, VERIFY_SSL, \
         LAUNCH_BROWSER, HTTPS_ENABLED, HTTPS_KEY, HTTPS_CERT, API_TOKEN, \
         DATABASE_TYPE, MYSQL_HOST, MYSQL_PORT, MYSQL_USER, MYSQL_PASS, \
-        GIT_ENABLE, GIT_PATH, GIT_BRANCH, GIT_USER, GIT_STARTUP, GIT_INTERVAL, \
+        GIT_ENABLED, GIT_PATH, GIT_BRANCH, GIT_USER, GIT_STARTUP, GIT_INTERVAL, \
         GIT_OVERRIDE, GIT_REPO, GIT_UPSTREAM, GIT_LOCAL
 
         if __INITIALIZED__:
@@ -164,25 +179,25 @@ def initialize():
 
         if not output or 'not found' in output or "not recognized as an internal or external command" in output:
             logger.debug('Unable to find git with command ' + cmd)
-            git_enable = 0
+            git_enable = False
             git_path = ''
-            git_startup = 0
-            git_interval = 0
+            git_startup = False
+            git_interval = False
         else:
-            git_enable = 1
+            git_enable = True
             git_path = output
-            git_startup = 1
+            git_startup = True
             git_interval = 12
 
         APP_NAME = check_setting_str(CFG, 'Server', 'app_name', 'CherryStrap')
         HTTP_ROOT = check_setting_str(CFG, 'Server', 'http_root', '')
         LOGDIR = check_setting_str(CFG, 'Server', 'logdir', '')
         HTTP_HOST = check_setting_str(CFG, 'Server', 'http_host', '0.0.0.0')
-        HTTPS_ENABLED = bool(check_setting_int(CFG, 'Server', 'https_enabled', 0))
+        HTTPS_ENABLED = check_setting_bool(CFG, 'Server', 'https_enabled', 'False')
         HTTPS_KEY = check_setting_str(CFG, 'Server', 'https_key', 'keys/server.key')
         HTTPS_CERT = check_setting_str(CFG, 'Server', 'https_cert', 'keys/server.crt')
-        VERIFY_SSL = bool(check_setting_int(CFG, 'Server', 'verify_ssl', 1))
-        LAUNCH_BROWSER = bool(check_setting_int(CFG, 'Server', 'launch_browser', 0))
+        VERIFY_SSL = check_setting_bool(CFG, 'Server', 'verify_ssl', 'True')
+        LAUNCH_BROWSER = check_setting_bool(CFG, 'Server', 'launch_browser', 'False')
 
         HTTP_USER = check_setting_str(CFG, 'Interface', 'http_user', '')
         HTTP_PASS = check_setting_str(CFG, 'Interface', 'http_pass', '')
@@ -195,16 +210,16 @@ def initialize():
         MYSQL_USER = check_setting_str(CFG, 'Database', 'mysql_user', '')
         MYSQL_PASS = check_setting_str(CFG, 'Database', 'mysql_pass', '')
 
-        GIT_ENABLE = bool(check_setting_int(CFG, 'Git', 'git_enable', git_enable))
+        GIT_ENABLED = check_setting_bool(CFG, 'Git', 'git_enable', git_enable)
         GIT_PATH = check_setting_str(CFG, 'Git', 'git_path', git_path)
         GIT_USER = check_setting_str(CFG, 'Git', 'git_user', 'theguardian')
         GIT_REPO = check_setting_str(CFG, 'Git', 'git_repo', 'CherryStrap')
         GIT_BRANCH = check_setting_str(CFG, 'Git', 'git_branch', 'master')
         GIT_UPSTREAM = check_setting_str(CFG, 'Git', 'git_upstream', '')
         GIT_LOCAL = check_setting_str(CFG, 'Git', 'git_local', '')
-        GIT_STARTUP = bool(check_setting_int(CFG, 'Git', 'git_startup', git_startup))
+        GIT_STARTUP = check_setting_bool(CFG, 'Git', 'git_startup', git_startup)
         GIT_INTERVAL = check_setting_int(CFG, 'Git', 'git_interval', git_interval)
-        GIT_OVERRIDE = bool(check_setting_int(CFG, 'Git', 'git_override', 0))
+        GIT_OVERRIDE = check_setting_bool(CFG, 'Git', 'git_override', 'False')
 
         if not LOGDIR:
             LOGDIR = os.path.join(DATADIR, 'Logs')
@@ -263,7 +278,7 @@ def initialize():
                              version_lock_file, e)
 
         # Check for new versions
-        if GIT_ENABLE and GIT_STARTUP:
+        if GIT_ENABLED and GIT_STARTUP:
             try:
                 GIT_UPSTREAM = versioncheck.checkGithub()
             except:
@@ -339,11 +354,11 @@ def config_write():
     new_config['Server']['logdir'] = LOGDIR
     new_config['Server']['http_host'] = HTTP_HOST
     new_config['Server']['http_port'] = HTTP_PORT
-    new_config['Server']['https_enabled'] = int(HTTPS_ENABLED)
+    new_config['Server']['https_enabled'] = HTTPS_ENABLED
     new_config['Server']['https_key'] = HTTPS_KEY
     new_config['Server']['https_cert'] = HTTPS_CERT
-    new_config['Server']['verify_ssl'] = int(VERIFY_SSL)
-    new_config['Server']['launch_browser'] = int(LAUNCH_BROWSER)
+    new_config['Server']['verify_ssl'] = VERIFY_SSL
+    new_config['Server']['launch_browser'] = LAUNCH_BROWSER
 
     new_config['Interface'] = {}
     new_config['Interface']['http_user'] = HTTP_USER
@@ -359,16 +374,16 @@ def config_write():
     new_config['Database']['mysql_pass'] = MYSQL_PASS
 
     new_config['Git'] = {}
-    new_config['Git']['git_enable'] = int(GIT_ENABLE)
+    new_config['Git']['git_enable'] = GIT_ENABLED
     new_config['Git']['git_path'] = GIT_PATH
     new_config['Git']['git_user'] = GIT_USER
     new_config['Git']['git_repo'] = GIT_REPO
     new_config['Git']['git_branch'] = GIT_BRANCH
     new_config['Git']['git_upstream'] = GIT_UPSTREAM
     new_config['Git']['git_local'] = GIT_LOCAL
-    new_config['Git']['git_startup'] = int(GIT_STARTUP)
+    new_config['Git']['git_startup'] = GIT_STARTUP
     new_config['Git']['git_interval'] = GIT_INTERVAL
-    new_config['Git']['git_override'] = int(GIT_OVERRIDE)
+    new_config['Git']['git_override'] = GIT_OVERRIDE
 
     new_config.write()
 
@@ -436,7 +451,7 @@ def start():
             # testInterval = IntervalTrigger(weeks=0, days=0, hours=0, minutes=2, seconds=0, start_date=None, end_date=None, timezone=None)
             # testCron = CronTrigger(year=None, month=None, day=None, week=None, day_of_week=None, hour=None, minute='*/2', second=None, start_date=None, end_date=None, timezone=None)
             # SCHED.add_job(formatter.schedulerTest, testCron)
-            if GIT_ENABLE and GIT_INTERVAL != 0:
+            if GIT_ENABLED and GIT_INTERVAL != 0:
                 gitInterval = IntervalTrigger(weeks=0, days=0, hours=GIT_INTERVAL, minutes=0, seconds=0, start_date=None, end_date=None, timezone=None)
                 SCHED.add_job(versioncheck.checkGithub, gitInterval)
             SCHED.start()

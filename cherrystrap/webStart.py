@@ -2,7 +2,7 @@ import os, sys, cherrypy
 import cherrystrap
 from cherrystrap import logger
 from cherrystrap.webServe import WebInterface
-from cherrystrap.api import apiInterface
+from cherrystrap import apiServe
 from cherrystrap.formatter import create_https_certificates
 
 def initialize(options={}):
@@ -75,17 +75,15 @@ def initialize(options={}):
         }
     }
 
-    apiConf = {
-        '/favicon.ico':{
-            'tools.staticfile.on': True,
-            'tools.staticfile.filename': os.path.join(cherrystrap.PROG_DIR, 'static/images/favicon.ico')
-        }
-    }
-
     # Prevent time-outs
     cherrypy.engine.timeout_monitor.unsubscribe()
     cherrypy.tree.mount(WebInterface(), options['http_root'], config = webConf)
-    cherrypy.tree.mount(apiInterface(), options['http_root']+'/api/v1', config = apiConf)
+
+    # Load API endpoints
+    cherrypy.tree.mount(apiServe.settings(), cherrystrap.HTTP_ROOT+'/api/v1/settings',
+        {'/': {'request.dispatch': cherrypy.dispatch.MethodDispatcher()}})
+    cherrypy.tree.mount(apiServe.log(), cherrystrap.HTTP_ROOT+'/api/v1/log',
+        {'/': {'request.dispatch': cherrypy.dispatch.MethodDispatcher()}})
 
     cherrypy.engine.autoreload.subscribe()
 
