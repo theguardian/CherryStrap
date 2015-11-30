@@ -237,7 +237,7 @@
 
   $("#config_form").submit(function() {
       $.ajax({
-          type: "POST",
+          type: "PUT",
           url: "/api/v1/settings?token=${cherrystrap.API_TOKEN}",
           data: JSON.stringify($("#config_form").serialize()),
           beforeSend: function() {

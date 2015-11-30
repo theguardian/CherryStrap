@@ -10,6 +10,7 @@ class settings(object):
     exposed = True
 
     def GET(self, token=None):
+
         if token != cherrystrap.API_TOKEN:
             return "{\"error\": \"Invalid Token\"}"
 
@@ -18,35 +19,40 @@ class settings(object):
             "logDir": cherrystrap.LOGDIR,
             "httpHost": cherrystrap.HTTP_HOST,
             "httpPort": cherrystrap.HTTP_PORT,
-            "sslEnabled": cherrystrap.HTTPS_ENABLED,
+            "sslEnabled": bool(cherrystrap.HTTPS_ENABLED),
             "sslKey": cherrystrap.HTTPS_KEY,
             "sslCert": cherrystrap.HTTPS_CERT,
-            "sslVerify": cherrystrap.VERIFY_SSL,
+            "sslVerify": bool(cherrystrap.VERIFY_SSL),
             "httpUser": cherrystrap.HTTP_USER,
             "httpPass": cherrystrap.HTTP_PASS,
             "httpLook": cherrystrap.HTTP_LOOK,
             "apiToken": cherrystrap.API_TOKEN,
-            "launchBrowser": cherrystrap.LAUNCH_BROWSER,
+            "launchBrowser": bool(cherrystrap.LAUNCH_BROWSER),
             "dbType": cherrystrap.DATABASE_TYPE,
             "mysqlHost": cherrystrap.MYSQL_HOST,
             "mysqlPort": cherrystrap.MYSQL_PORT,
             "mysqlUser": cherrystrap.MYSQL_USER,
             "mysqlPass": cherrystrap.MYSQL_PASS,
-            "gitEnabled": cherrystrap.GIT_ENABLED,
+            "gitEnabled": bool(cherrystrap.GIT_ENABLED),
             "gitPath": cherrystrap.GIT_PATH,
             "gitUser": cherrystrap.GIT_USER,
             "gitRepo": cherrystrap.GIT_REPO,
             "gitBranch": cherrystrap.GIT_BRANCH,
             "gitUpstream": cherrystrap.GIT_UPSTREAM,
             "gitLocal": cherrystrap.GIT_LOCAL,
-            "gitStartup": cherrystrap.GIT_STARTUP,
+            "gitStartup": bool(cherrystrap.GIT_STARTUP),
             "gitInterval": cherrystrap.GIT_INTERVAL,
-            "gitOverride": cherrystrap.GIT_OVERRIDE
+            "gitOverride": bool(cherrystrap.GIT_OVERRIDE)
         }
         config = json.dumps(configuration)
         return config
 
-    def POST(self, token=None, **kwargs):
+    def POST(self, token=None):
+        if token != cherrystrap.API_TOKEN:
+            return "{\"error\": \"Invalid Token\"}"
+        return "{\"error\": \"PUT not available at this endpoint\"}"
+
+    def PUT(self, token=None, **kwargs):
 
         if token != cherrystrap.API_TOKEN:
             return "{\"error\": \"Invalid Token\"}"
@@ -58,7 +64,7 @@ class settings(object):
         cherrystrap.HTTPS_ENABLED = kwargs.pop('https_enabled', False) == 'on'
         cherrystrap.HTTPS_KEY = kwargs.pop('https_key', 'keys/server.key')
         cherrystrap.HTTPS_CERT = kwargs.pop('https_cert', 'keys/server.crt')
-        cherrystrap.VERIFY_SSL = kwargs.pop('verify_ssl', 1) == 'on'
+        cherrystrap.VERIFY_SSL = kwargs.pop('verify_ssl', True) == 'on'
         cherrystrap.LAUNCH_BROWSER = kwargs.pop('launch_browser', False) == 'on'
         cherrystrap.HTTP_USER = kwargs.pop('http_user', None)
         httpPassProcess = kwargs.pop('http_pass', None)
@@ -104,16 +110,18 @@ class settings(object):
         logger.info("All configuration settings posted successfully")
         return "{\"success\": \"All configuration settings posted successfully\"}"
 
-    def PUT(self, token=None):
-        return "{\"error\": \"PUT not available at this endpoint\"}"
-
     def DELETE(self, token=None):
+        if token != cherrystrap.API_TOKEN:
+            return "{\"error\": \"Invalid Token\"}"
         return "{\"error\": \"DELETE not available at this endpoint\"}"
 
 class log(object):
     exposed = True
 
-    def GET(self, draw=1, start=0, length=100, **kwargs):
+    def GET(self, token=None, draw=1, start=0, length=100, **kwargs):
+
+        if token != cherrystrap.API_TOKEN:
+            return "{\"error\": \"Invalid Token\"}"
 
         start = int(start)
         length = int(length)
@@ -159,10 +167,16 @@ class log(object):
         return s
 
     def POST(self):
+        if token != cherrystrap.API_TOKEN:
+            return "{\"error\": \"Invalid Token\"}"
         return "{\"error\": \"POST not available at this endpoint\"}"
 
     def PUT(self):
+        if token != cherrystrap.API_TOKEN:
+            return "{\"error\": \"Invalid Token\"}"
         return "{\"error\": \"PUT not available at this endpoint\"}"
 
     def DELETE(self):
+        if token != cherrystrap.API_TOKEN:
+            return "{\"error\": \"Invalid Token\"}"
         return "{\"error\": \"DELETE not available at this endpoint\"}"

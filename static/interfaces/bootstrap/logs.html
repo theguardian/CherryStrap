@@ -48,7 +48,7 @@
 			$('#log_table').DataTable({
 				serverSide: true,
 				ajax: {
-					url: '/api/v1/log',
+					url: '/api/v1/log?token=${cherrystrap.API_TOKEN}',
 					type: 'get',
 				},
 				order: [[ 0, 'desc' ]],

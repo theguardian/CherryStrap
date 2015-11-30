@@ -9,7 +9,6 @@ import threading, time
 import cherrystrap
 
 from cherrystrap import logger, formatter, database
-from cherrystrap.formatter import checked
 
 SESSION_KEY = '_cp_username'
 

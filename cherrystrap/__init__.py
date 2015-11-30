@@ -65,6 +65,7 @@ MYSQL_PORT = None
 MYSQL_USER = None
 MYSQL_PASS = None
 
+GIT_EXISTS = False
 GIT_USER = None
 GIT_REPO = None
 GIT_BRANCH = None
@@ -147,7 +148,7 @@ def initialize():
         LAUNCH_BROWSER, HTTPS_ENABLED, HTTPS_KEY, HTTPS_CERT, API_TOKEN, \
         DATABASE_TYPE, MYSQL_HOST, MYSQL_PORT, MYSQL_USER, MYSQL_PASS, \
         GIT_ENABLED, GIT_PATH, GIT_BRANCH, GIT_USER, GIT_STARTUP, GIT_INTERVAL, \
-        GIT_OVERRIDE, GIT_REPO, GIT_UPSTREAM, GIT_LOCAL
+        GIT_OVERRIDE, GIT_REPO, GIT_UPSTREAM, GIT_LOCAL, GIT_EXISTS
 
         if __INITIALIZED__:
             return False
@@ -165,29 +166,37 @@ def initialize():
         if HTTP_PORT < 21 or HTTP_PORT > 65535:
             HTTP_PORT = 7889
 
-        # Attempt to find location of git in this environment
-        output = err = None
-        cmd = 'which git'
-        try:
-            logger.debug('Trying to execute: "' + cmd + '" with shell in ' + os.getcwd())
-            p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True, cwd=os.getcwd())
-            output, err = p.communicate()
-            output = output.strip()
-            logger.debug('Git output: ' + output)
-        except OSError:
-            logger.debug('Command failed: %s', cmd)
+        GIT_EXISTS = os.path.isdir(os.path.join(DATADIR, '.git'))
 
-        if not output or 'not found' in output or "not recognized as an internal or external command" in output:
-            logger.debug('Unable to find git with command ' + cmd)
-            git_enable = False
-            git_path = ''
-            git_startup = False
-            git_interval = False
+        # Attempt to find location of git in this environment
+        if GIT_EXISTS:
+            output = err = None
+            cmd = 'which git'
+            try:
+                logger.debug('Trying to execute: "' + cmd + '" with shell in ' + os.getcwd())
+                p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True, cwd=os.getcwd())
+                output, err = p.communicate()
+                output = output.strip()
+                logger.debug('Git output: ' + output)
+            except OSError:
+                logger.debug('Command failed: %s', cmd)
+
+            if not output or 'not found' in output or "not recognized as an internal or external command" in output:
+                logger.debug('Unable to find git with command ' + cmd)
+                git_enable = False
+                git_path = ''
+                git_startup = False
+                git_interval = False
+            else:
+                git_enable = True
+                git_path = output
+                git_startup = True
+                git_interval = 12
         else:
-            git_enable = True
-            git_path = output
-            git_startup = True
-            git_interval = 12
+                git_enable = False
+                git_path = ''
+                git_startup = False
+                git_interval = False
 
         APP_NAME = check_setting_str(CFG, 'Server', 'app_name', 'CherryStrap')
         HTTP_ROOT = check_setting_str(CFG, 'Server', 'http_root', '')
@@ -246,7 +255,7 @@ def initialize():
 
         # Initialize the database
         try:
-            dbcheck()
+            dbcheck(DATABASE_TYPE)
         except Exception, e:
             logger.error("Can't connect to the database: %s" % e)
 
@@ -387,11 +396,11 @@ def config_write():
 
     new_config.write()
 
-def dbcheck():
+def dbcheck(dbType=DATABASE_TYPE):
 
     # User should have a choice between sqlite and mysql
 
-    if DATABASE_TYPE == "sqlite":
+    if dbType == "sqlite":
         try:
             import sqlite3
         except Exception, e:
@@ -410,11 +419,13 @@ def dbcheck():
 
         conn.commit()
         c.close()
-    elif DATABASE_TYPE == "mysql":
+    elif dbType == "mysql":
         try:
             import MySQLdb
-        except Exception, e:
-            logger.warn("MySQLdb is not installed: %s" % e)
+        except ImportError:
+            logger.warn("The MySQLdb module is missing. Install this " \
+                "module to enable MySQL. Please revert to SQLite.")
+
         # Uncomment this if you have mysql configured and want to create a db
         # try:
         #     conn_ini = MySQLdb.Connection(host=MYSQL_HOST, port=MYSQL_PORT,

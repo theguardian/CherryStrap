@@ -88,8 +88,10 @@ class MySQL_DBConnection:
         try:
             global MySQLdb
             import MySQLdb
-        except Exception, e:
-            logger.error("There was an error importing MySQLdb: %s" % e)
+        except ImportError:
+            logger.warn("The MySQLdb module is missing. Install this " \
+                "module to enable MySQL. Reverting to SQLite.")
+            cherrystrap.DATABASE_TYPE = "sqlite"
         host = cherrystrap.MYSQL_HOST
         port = cherrystrap.MYSQL_PORT
         if port:
