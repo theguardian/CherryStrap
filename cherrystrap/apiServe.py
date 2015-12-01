@@ -18,7 +18,7 @@ class settings(object):
             "appName":  cherrystrap.APP_NAME,
             "logDir": cherrystrap.LOGDIR,
             "httpHost": cherrystrap.HTTP_HOST,
-            "httpPort": cherrystrap.HTTP_PORT,
+            "httpPort": int(cherrystrap.HTTP_PORT),
             "sslEnabled": bool(cherrystrap.HTTPS_ENABLED),
             "sslKey": cherrystrap.HTTPS_KEY,
             "sslCert": cherrystrap.HTTPS_CERT,
@@ -30,7 +30,7 @@ class settings(object):
             "launchBrowser": bool(cherrystrap.LAUNCH_BROWSER),
             "dbType": cherrystrap.DATABASE_TYPE,
             "mysqlHost": cherrystrap.MYSQL_HOST,
-            "mysqlPort": cherrystrap.MYSQL_PORT,
+            "mysqlPort": int(cherrystrap.MYSQL_PORT),
             "mysqlUser": cherrystrap.MYSQL_USER,
             "mysqlPass": cherrystrap.MYSQL_PASS,
             "gitEnabled": bool(cherrystrap.GIT_ENABLED),
@@ -41,7 +41,7 @@ class settings(object):
             "gitUpstream": cherrystrap.GIT_UPSTREAM,
             "gitLocal": cherrystrap.GIT_LOCAL,
             "gitStartup": bool(cherrystrap.GIT_STARTUP),
-            "gitInterval": cherrystrap.GIT_INTERVAL,
+            "gitInterval": int(cherrystrap.GIT_INTERVAL),
             "gitOverride": bool(cherrystrap.GIT_OVERRIDE)
         }
         config = json.dumps(configuration)
@@ -57,10 +57,13 @@ class settings(object):
         if token != cherrystrap.API_TOKEN:
             return "{\"error\": \"Invalid Token\"}"
 
-        cherrystrap.APP_NAME = kwargs.pop('"app_name', 'CherryStrap')
+        cherrystrap.APP_NAME = kwargs.pop('app_name', 'CherryStrap')
         cherrystrap.LOGDIR = kwargs.pop('logdir', None)
         cherrystrap.HTTP_HOST = kwargs.pop('http_host', '0.0.0.0')
-        cherrystrap.HTTP_PORT = kwargs.pop('http_port', 7889)
+        try:
+            cherrystrap.HTTP_PORT = int(kwargs.pop('http_port', 7889))
+        except:
+            pass
         cherrystrap.HTTPS_ENABLED = kwargs.pop('https_enabled', False) == 'on'
         cherrystrap.HTTPS_KEY = kwargs.pop('https_key', 'keys/server.key')
         cherrystrap.HTTPS_CERT = kwargs.pop('https_cert', 'keys/server.crt')
@@ -79,7 +82,10 @@ class settings(object):
         cherrystrap.API_TOKEN = kwargs.pop('api_token', None)
         cherrystrap.DATABASE_TYPE = kwargs.pop('database_type', 'sqlite')
         cherrystrap.MYSQL_HOST = kwargs.pop('mysql_host', 'localhost')
-        cherrystrap.MYSQL_PORT = kwargs.pop('mysql_port', 3306)
+        try:
+            cherrystrap.MYSQL_PORT = int(kwargs.pop('mysql_port', 3306))
+        except:
+            pass
         cherrystrap.MYSQL_USER = kwargs.pop('mysql_user', None)
         mysqlPassProcess = kwargs.pop('mysql_pass', None)
         if mysqlPassProcess != cherrystrap.MYSQL_PASS and mysqlPassProcess != "":
@@ -105,6 +111,7 @@ class settings(object):
 
         if len(kwargs) != 0:
             logger.warn("Configuration update contained unexpected keywords: %s" % json.dumps(kwargs))
+            return "Configuration update was successful, but contained unexpected keywords: %s" % json.dumps(kwargs)
 
         cherrystrap.config_write()
         logger.info("All configuration settings posted successfully")

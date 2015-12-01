@@ -236,10 +236,13 @@
   });
 
   $("#config_form").submit(function() {
+      console.log(JSON.stringify($("#config_form").serializeArray()))
       $.ajax({
-          type: "PUT",
           url: "/api/v1/settings?token=${cherrystrap.API_TOKEN}",
-          data: JSON.stringify($("#config_form").serialize()),
+          type: "PUT",
+          // contentType: "application/json; charset=utf-8",
+          // dataType: "json",
+          data: $("#config_form").serialize(),
           beforeSend: function() {
               $(".ajaxMsg").html('<div class="alert alert-warning"><img src="images/ajax-loader.gif"/></div>').show();
           },
