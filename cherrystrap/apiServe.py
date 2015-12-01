@@ -15,34 +15,42 @@ class settings(object):
             return "{\"error\": \"Invalid Token\"}"
 
         configuration = {
-            "appName":  cherrystrap.APP_NAME,
-            "logDir": cherrystrap.LOGDIR,
-            "httpHost": cherrystrap.HTTP_HOST,
-            "httpPort": int(cherrystrap.HTTP_PORT),
-            "sslEnabled": bool(cherrystrap.HTTPS_ENABLED),
-            "sslKey": cherrystrap.HTTPS_KEY,
-            "sslCert": cherrystrap.HTTPS_CERT,
-            "sslVerify": bool(cherrystrap.VERIFY_SSL),
-            "httpUser": cherrystrap.HTTP_USER,
-            "httpPass": cherrystrap.HTTP_PASS,
-            "httpLook": cherrystrap.HTTP_LOOK,
-            "apiToken": cherrystrap.API_TOKEN,
-            "launchBrowser": bool(cherrystrap.LAUNCH_BROWSER),
-            "dbType": cherrystrap.DATABASE_TYPE,
-            "mysqlHost": cherrystrap.MYSQL_HOST,
-            "mysqlPort": int(cherrystrap.MYSQL_PORT),
-            "mysqlUser": cherrystrap.MYSQL_USER,
-            "mysqlPass": cherrystrap.MYSQL_PASS,
-            "gitEnabled": bool(cherrystrap.GIT_ENABLED),
-            "gitPath": cherrystrap.GIT_PATH,
-            "gitUser": cherrystrap.GIT_USER,
-            "gitRepo": cherrystrap.GIT_REPO,
-            "gitBranch": cherrystrap.GIT_BRANCH,
-            "gitUpstream": cherrystrap.GIT_UPSTREAM,
-            "gitLocal": cherrystrap.GIT_LOCAL,
-            "gitStartup": bool(cherrystrap.GIT_STARTUP),
-            "gitInterval": int(cherrystrap.GIT_INTERVAL),
-            "gitOverride": bool(cherrystrap.GIT_OVERRIDE)
+            "server": {
+                "appName":  cherrystrap.APP_NAME,
+                "logDir": cherrystrap.LOGDIR,
+                "httpHost": cherrystrap.HTTP_HOST,
+                "httpPort": int(cherrystrap.HTTP_PORT),
+                "sslEnabled": bool(cherrystrap.HTTPS_ENABLED),
+                "sslKey": cherrystrap.HTTPS_KEY,
+                "sslCert": cherrystrap.HTTPS_CERT,
+                "sslVerify": bool(cherrystrap.VERIFY_SSL),
+                "launchBrowser": bool(cherrystrap.LAUNCH_BROWSER)
+            },
+            "interface": {
+                "httpUser": cherrystrap.HTTP_USER,
+                "httpPass": cherrystrap.HTTP_PASS,
+                "httpLook": cherrystrap.HTTP_LOOK,
+                "apiToken": cherrystrap.API_TOKEN
+            },
+            "database": {
+                "dbType": cherrystrap.DATABASE_TYPE,
+                "mysqlHost": cherrystrap.MYSQL_HOST,
+                "mysqlPort": int(cherrystrap.MYSQL_PORT),
+                "mysqlUser": cherrystrap.MYSQL_USER,
+                "mysqlPass": cherrystrap.MYSQL_PASS
+            },
+            "git": {
+                "gitEnabled": bool(cherrystrap.GIT_ENABLED),
+                "gitPath": cherrystrap.GIT_PATH,
+                "gitUser": cherrystrap.GIT_USER,
+                "gitRepo": cherrystrap.GIT_REPO,
+                "gitBranch": cherrystrap.GIT_BRANCH,
+                "gitUpstream": cherrystrap.GIT_UPSTREAM,
+                "gitLocal": cherrystrap.GIT_LOCAL,
+                "gitStartup": bool(cherrystrap.GIT_STARTUP),
+                "gitInterval": int(cherrystrap.GIT_INTERVAL),
+                "gitOverride": bool(cherrystrap.GIT_OVERRIDE)
+            }
         }
         config = json.dumps(configuration)
         return config

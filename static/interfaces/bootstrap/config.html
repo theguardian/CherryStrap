@@ -40,7 +40,7 @@
           <label for="sslEnabled">&nbsp;Broadcast SSL</label>
           <input type="checkbox" name="https_enabled" class="checkbox pull-left" id="sslEnabled">
         </div>
-        <div class="col-md-12" id="sslKeyGroup">
+        <div class="col-md-12" id="sslKeyGroup" style="display:none;">
           <div class="col-md-6 form-group">
             <label for="sslKey">SSL Key</label>
             <input type="text" name="https_key" value="" class="form-control" id="sslKey" placeholder="SSL Key">
@@ -97,7 +97,7 @@
             <option value="mysql" id="mysql">mysql</option>
           </select>
         </div>
-        <div class="col-md-12" id="mysqlGroup">
+        <div class="col-md-12" id="mysqlGroup" style="display:none;">
           <div class="alert alert-danger">
             <p>Note that both MySQL and MySQL-python need to be installed for this
             functionality to work.</p>
@@ -131,7 +131,7 @@
           <label for="gitEnabled">&nbsp;Enable Git Updater</label>
           <input type="checkbox" name="git_enabled" class="checkbox pull-left" id="gitEnabled">
         </div>
-        <div class="col-md-12" id="gitGroup">
+        <div class="col-md-12" id="gitGroup" style="display:none;">
           <div class="col-md-6 form-group">
             <label for="gitPath">Git Path</label>
             <input type="text" name="git_path" value="" class="form-control" id="gitPath" placeholder="Git Path">
@@ -167,7 +167,7 @@
               <div class="input-group-addon">Hours</div>
             </div>
           </div>
-          <div class="col-md-6 form-group" style="visibility:hidden;">
+          <div class="col-md-6 form-group" style="display:none;">
             <label for="gitOverride">&nbsp;Do Not Override Branch?</label>
             <input type="checkbox" name="git_override" class="checkbox pull-left" id="gitOverride" readonly>
           </div>
@@ -184,7 +184,7 @@
 
   $.getJSON('/api/v1/settings?token=${cherrystrap.API_TOKEN}', function(data) {
     var $inputs = $('form input');
-    $.each(data, function(key, value) {
+    $.each(data['server'], function(key, value) {
 
       if ($('#'+key).attr('type') == 'text' || $('#'+key).attr('type') == 'password') {
         $inputs.filter(function() {
@@ -197,24 +197,56 @@
         }).prop('checked', true);
       }
 
-      if (key == 'dbType') {
-        $('#'+value).prop('selected', true);
+      if (key == 'sslEnabled' && value == true) {
+        $('#sslKeyGroup').show();
       }
+    });
+
+    $.each(data['interface'], function(key, value) {
+      if ($('#'+key).attr('type') == 'text' || $('#'+key).attr('type') == 'password') {
+        $inputs.filter(function() {
+          return key == this.id;
+        }).val(value);
+      }
+
       if (key == 'httpLook') {
         $('#'+value).prop('selected', true);
       }
-
-      if (key == 'sslEnabled' && value == false) {
-        $('#sslKeyGroup').hide();
-      }
-      if (key == 'dbType' && value == 'sqlite') {
-        $('#mysqlGroup').hide();
-      }
-      if (key == 'gitEnabled' && value == false) {
-        $('#gitGroup').hide();
-      }
-
     });
+
+    $.each(data['database'], function(key, value) {
+      if ($('#'+key).attr('type') == 'text' || $('#'+key).attr('type') == 'password') {
+        $inputs.filter(function() {
+          return key == this.id;
+        }).val(value);
+      }
+
+      if (key == 'dbType') {
+        $('#'+value).prop('selected', true);
+      }
+
+      if (key == 'dbType' && value == 'mysql') {
+        $('#mysqlGroup').show();
+      }
+    });
+
+    $.each(data['git'], function(key, value) {
+      if ($('#'+key).attr('type') == 'text' || $('#'+key).attr('type') == 'password') {
+        $inputs.filter(function() {
+          return key == this.id;
+        }).val(value);
+      }
+      else if ($('#'+key).attr('type') == 'checkbox' && value == true) {
+        $inputs.filter(function() {
+          return key == this.id;
+        }).prop('checked', true);
+      }
+
+      if (key == 'gitEnabled' && value == true) {
+        $('#gitGroup').show();
+      }
+    });
+
   });
 
   $('#configTable a:first').tab('show');
@@ -236,7 +268,7 @@
   });
 
   $("#config_form").submit(function() {
-      console.log(JSON.stringify($("#config_form").serializeArray()))
+      //console.log(JSON.stringify($("#config_form").serializeArray()))
       $.ajax({
           url: "/api/v1/settings?token=${cherrystrap.API_TOKEN}",
           type: "PUT",
