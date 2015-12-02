@@ -22,41 +22,44 @@
       <div class="row">
         <div class="col-md-6 form-group">
           <label for="appName">App Name</label>
-          <input type="text" name="app_name" value="" class="form-control" id="appName" placeholder="App Name">
+          <input type="text" name="appName" value="" class="form-control" id="appName" placeholder="App Name">
         </div>
         <div class="col-md-6 form-group">
           <label for="logDir">Log Directory</label>
-          <input type="text" name="logdir" value="" class="form-control" id="logDir" placeholder="Log Directory">
+          <input type="text" name="logDir" value="" class="form-control" id="logDir" placeholder="Log Directory">
         </div>
         <div class="col-md-6 form-group">
           <label for="httpHost">Broadcast Address</label>
-          <input type="text" name="http_host" value="" class="form-control" id="httpHost" placeholder="Broadcast Address">
+          <input type="text" name="httpHost" value="" class="form-control" id="httpHost" placeholder="Broadcast Address">
         </div>
         <div class="col-md-6 form-group">
           <label for="httpPort">Broadcast Port</label>
-          <input type="text" name="http_port" value="" class="form-control" id="httpPort" placeholder="Broadcast Port">
+          <input type="text" name="httpPort" value="" class="form-control" id="httpPort" placeholder="Broadcast Port">
         </div>
         <div class="col-md-12 form-group">
           <label for="sslEnabled">&nbsp;Broadcast SSL</label>
-          <input type="checkbox" name="https_enabled" class="checkbox pull-left" id="sslEnabled">
+          <input type="hidden" name="sslEnabledHidden" value="false" id="sslEnabledHidden">
+          <input type="checkbox" name="sslEnabled" value="true" class="checkbox pull-left" id="sslEnabled">
         </div>
         <div class="col-md-12" id="sslKeyGroup" style="display:none;">
           <div class="col-md-6 form-group">
             <label for="sslKey">SSL Key</label>
-            <input type="text" name="https_key" value="" class="form-control" id="sslKey" placeholder="SSL Key">
+            <input type="text" name="sslKey" value="" class="form-control" id="sslKey" placeholder="SSL Key">
           </div>
           <div class="col-md-6 form-group">
             <label for="sslCert">SSL Cert</label>
-            <input type="text" name="https_cert" value="" class="form-control" id="sslCert" placeholder="SSL Cert">
+            <input type="text" name="sslCert" value="" class="form-control" id="sslCert" placeholder="SSL Cert">
           </div>
         </div>
         <div class="col-md-6 form-group">
           <label for="sslVerify">&nbsp;Verify SSL</label>
-          <input type="checkbox" name="verify_ssl" class="checkbox pull-left" id="sslVerify">
+          <input type="hidden" name="sslVerifyHidden" value="false" id="sslVerifyHidden">
+          <input type="checkbox" name="sslVerify" value="true" class="checkbox pull-left" id="sslVerify">
         </div>
         <div class="col-md-6 form-group">
           <label for="launchBrowser">&nbsp;Launch Browser</label>
-          <input type="checkbox" name="launch_browser" class="checkbox pull-left" id="launchBrowser">
+          <input type="hidden" name="launchBrowserHidden" value="false" id="launchBrowserHidden">
+          <input type="checkbox" name="launchBrowser" value="true" class="checkbox pull-left" id="launchBrowser">
         </div>
       </div>
     </div>
@@ -66,15 +69,15 @@
       <div class="row">
         <div class="col-md-6 form-group">
           <label for="httpUser">Username</label>
-          <input type="text" name="http_user" value="" class="form-control" id="httpUser" placeholder="Username">
+          <input type="text" name="httpUser" value="" class="form-control" id="httpUser" placeholder="Username">
         </div>
         <div class="col-md-6 form-group">
           <label for="httpPass">Password</label>
-          <input type="password" name="http_pass" value="" class="form-control" id="httpPass" placeholder="********">
+          <input type="password" name="httpPass" value="" class="form-control" id="httpPass" placeholder="********">
         </div>
         <div class="col-md-6 form-group">
           <label for="httpLook">Theme</label>
-          <select name="http_look" class="form-control" id="httpLook">
+          <select name="httpLook" class="form-control" id="httpLook">
           %for http_look in config['http_look_list']:
               <option value="${http_look}" id="${http_look}">${http_look}</option>
           %endfor
@@ -82,7 +85,7 @@
         </div>
         <div class="col-md-6 form-group">
           <label for="apiToken">API Token</label>
-          <input type="text" name="api_token" value="" class="form-control" id="apiToken" placeholder="API Token" readonly>
+          <input type="text" name="apiToken" value="" class="form-control" id="apiToken" placeholder="API Token" readonly>
         </div>
       </div>
     </div>
@@ -92,7 +95,7 @@
       <div class="row">
         <div class="col-md-12 form-group">
           <label for="dbType">Database Type</label>
-          <select name="database_type" class="form-control" id="dbType">
+          <select name="dbType" class="form-control" id="dbType">
             <option value="sqlite" id="sqlite">sqlite</option>
             <option value="mysql" id="mysql">mysql</option>
           </select>
@@ -106,19 +109,19 @@
           </div>
           <div class="col-md-6 form-group">
             <label for="mysqlHost">MySQL Address</label>
-            <input type="text" name="mysql_host" value="" class="form-control" id="mysqlHost" placeholder="MySQL Address">
+            <input type="text" name="mysqlHost" value="" class="form-control" id="mysqlHost" placeholder="MySQL Address">
           </div>
           <div class="col-md-6 form-group">
             <label for="mysqlPort">MySQL Port</label>
-            <input type="text" name="mysql_port" value="" class="form-control" id="mysqlPort" placeholder="MySQL Port">
+            <input type="text" name="mysqlPort" value="" class="form-control" id="mysqlPort" placeholder="MySQL Port">
           </div>
           <div class="col-md-6 form-group">
             <label for="mysqlUser">MySQL Username</label>
-            <input type="text" name="mysql_user" value="" class="form-control" id="mysqlUser" placeholder="MySQL Username">
+            <input type="text" name="mysqlUser" value="" class="form-control" id="mysqlUser" placeholder="MySQL Username">
           </div>
           <div class="col-md-6 form-group">
             <label for="mysqlPass">MySQL Password</label>
-            <input type="password" name="mysql_pass" value="" class="form-control" id="mysqlPass" placeholder="********">
+            <input type="password" name="mysqlPass" value="" class="form-control" id="mysqlPass" placeholder="********">
           </div>
         </div>
       </div>
@@ -129,47 +132,50 @@
       <div class="row">
         <div class="col-md-12 form-group">
           <label for="gitEnabled">&nbsp;Enable Git Updater</label>
-          <input type="checkbox" name="git_enabled" class="checkbox pull-left" id="gitEnabled">
+          <input type="hidden" name="gitEnabledHidden" value="false" id="gitEnabledHidden">
+          <input type="checkbox" name="gitEnabled" value="true" class="checkbox pull-left" id="gitEnabled">
         </div>
         <div class="col-md-12" id="gitGroup" style="display:none;">
           <div class="col-md-6 form-group">
             <label for="gitPath">Git Path</label>
-            <input type="text" name="git_path" value="" class="form-control" id="gitPath" placeholder="Git Path">
+            <input type="text" name="gitPath" value="" class="form-control" id="gitPath" placeholder="Git Path">
           </div>
           <div class="col-md-6 form-group">
             <label for="gitUser">Git User</label>
-            <input type="text" name="git_user" value="" class="form-control" id="gitUser" placeholder="Git User" readonly>
+            <input type="text" name="gitUser" value="" class="form-control" id="gitUser" placeholder="Git User" readonly>
           </div>
           <div class="col-md-6 form-group">
             <label for="gitRepo">Git Repo</label>
-            <input type="text" name="git_repo" value="" class="form-control" id="gitRepo" placeholder="Git Repo" readonly>
+            <input type="text" name="gitRepo" value="" class="form-control" id="gitRepo" placeholder="Git Repo" readonly>
           </div>
           <div class="col-md-6 form-group">
             <label for="gitBranch">Git Branch</label>
-            <input type="text" name="git_branch" value="" class="form-control" id="gitBranch" placeholder="Git Branch" readonly>
+            <input type="text" name="gitBranch" value="" class="form-control" id="gitBranch" placeholder="Git Branch" readonly>
           </div>
           <div class="col-md-6 form-group">
             <label for="gitUpstream">Git Remote Version</label>
-            <input type="text" name="git_upstream" value="" class="form-control" id="gitUpstream" placeholder="Git Remote Version" readonly>
+            <input type="text" name="gitUpstream" value="" class="form-control" id="gitUpstream" placeholder="Git Remote Version" readonly>
           </div>
           <div class="col-md-6 form-group">
             <label for="gitLocal">Git Local Version</label>
-            <input type="text" name="git_local" value="" class="form-control" id="gitLocal" placeholder="Git Local Version" readonly>
+            <input type="text" name="gitLocal" value="" class="form-control" id="gitLocal" placeholder="Git Local Version" readonly>
           </div>
           <div class="col-md-6 form-group">
             <label for="gitStartup">&nbsp;Check for Updates on Startup</label>
-            <input type="checkbox" name="git_startup" class="checkbox pull-left" id="gitStartup">
+            <input type="hidden" name="gitStartupHidden" value="false" id="gitStartupHidden">
+            <input type="checkbox" name="gitStartup" value="true" class="checkbox pull-left" id="gitStartup">
           </div>
           <div class="col-md-6 form-group">
             <label for="gitInterval">Check for Updates</label>
             <div class="input-group">
-              <input type="text" name="git_interval" value="" class="form-control" id="gitInterval" placeholder="12">
+              <input type="text" name="gitInterval" value="" class="form-control" id="gitInterval" placeholder="12">
               <div class="input-group-addon">Hours</div>
             </div>
           </div>
           <div class="col-md-6 form-group" style="display:none;">
             <label for="gitOverride">&nbsp;Do Not Override Branch?</label>
-            <input type="checkbox" name="git_override" class="checkbox pull-left" id="gitOverride" readonly>
+            <input type="hidden" name="gitOverrideHidden" value="false" id="gitOverrideHidden">
+            <input type="checkbox" name="gitOverride" value="true" class="checkbox pull-left" id="gitOverride" readonly>
           </div>
         </div>
       </div>
@@ -183,16 +189,15 @@
 <script>
 
   $.getJSON('/api/v1/settings?token=${cherrystrap.API_TOKEN}', function(data) {
-    var $inputs = $('form input');
     $.each(data['server'], function(key, value) {
 
       if ($('#'+key).attr('type') == 'text' || $('#'+key).attr('type') == 'password') {
-        $inputs.filter(function() {
+        $('form input').filter(function() {
           return key == this.id;
         }).val(value);
       }
       else if ($('#'+key).attr('type') == 'checkbox' && value == true) {
-        $inputs.filter(function() {
+        $('form input').filter(function() {
           return key == this.id;
         }).prop('checked', true);
       }
@@ -204,7 +209,7 @@
 
     $.each(data['interface'], function(key, value) {
       if ($('#'+key).attr('type') == 'text' || $('#'+key).attr('type') == 'password') {
-        $inputs.filter(function() {
+        $('form input').filter(function() {
           return key == this.id;
         }).val(value);
       }
@@ -216,7 +221,7 @@
 
     $.each(data['database'], function(key, value) {
       if ($('#'+key).attr('type') == 'text' || $('#'+key).attr('type') == 'password') {
-        $inputs.filter(function() {
+        $('form input').filter(function() {
           return key == this.id;
         }).val(value);
       }
@@ -232,12 +237,12 @@
 
     $.each(data['git'], function(key, value) {
       if ($('#'+key).attr('type') == 'text' || $('#'+key).attr('type') == 'password') {
-        $inputs.filter(function() {
+        $('form input').filter(function() {
           return key == this.id;
         }).val(value);
       }
       else if ($('#'+key).attr('type') == 'checkbox' && value == true) {
-        $inputs.filter(function() {
+        $('form input').filter(function() {
           return key == this.id;
         }).prop('checked', true);
       }
@@ -268,25 +273,33 @@
   });
 
   $("#config_form").submit(function() {
-      //console.log(JSON.stringify($("#config_form").serializeArray()))
-      $.ajax({
-          url: "/api/v1/settings?token=${cherrystrap.API_TOKEN}",
-          type: "PUT",
-          // contentType: "application/json; charset=utf-8",
-          // dataType: "json",
-          data: $("#config_form").serialize(),
-          beforeSend: function() {
-              $(".ajaxMsg").html('<div class="alert alert-warning"><img src="images/ajax-loader.gif"/></div>').show();
-          },
-          success: function(data)
-          {
-              $(".ajaxMsg").html('<div class="alert alert-success">Configuration Saved Successfully!</div>').show().fadeOut(5000);
-          },
-          error: function(XMLHttpRequest, textStatus, errorThrown) {
-              $(".ajaxMsg").html('<div class="alert alert-danger">'+textStatus+': '+errorThrown+'</div>').show().fadeOut(5000);
-          }
-      });
-      return false;
+    //var formData = JSON.stringify($("#config_form").serializeArray());
+    $('#config_form').find('input').each(function(){
+      if($(this).is(":checked")){
+        var divid = this.id;
+        $('#'+divid+'Hidden').prop("disabled", true);
+      }
+    });
+    var formData = $("#config_form").serialize();
+    $.ajax({
+        url: "/api/v1/settings?token=${cherrystrap.API_TOKEN}",
+        type: "PUT",
+        // contentType: "application/json; charset=utf-8",
+        // dataType: "json",
+        data: formData,
+        beforeSend: function() {
+            $(".ajaxMsg").html('<div class="alert alert-warning"><img src="images/ajax-loader.gif"/></div>').show();
+        },
+        success: function(data)
+        {
+            var message = JSON.parse(data)
+            $(".ajaxMsg").html('<div class="alert alert-success">'+message['message']+'</div>').show().fadeOut(5000);
+        },
+        error: function(XMLHttpRequest, textStatus, errorThrown) {
+            $(".ajaxMsg").html('<div class="alert alert-danger">'+textStatus+': '+errorThrown+'</div>').show().fadeOut(5000);
+        }
+    });
+    return false;
   });
 </script>
 </%def>

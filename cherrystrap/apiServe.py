@@ -1,7 +1,5 @@
-import collections
-import cherrypy
+import cherrypy, collections
 import cherrystrap
-from cherrypy import _cperror
 from lib import simplejson as json
 from lib.passlib.hash import sha256_crypt
 from cherrystrap import logger, formatter
@@ -12,7 +10,7 @@ class settings(object):
     def GET(self, token=None):
 
         if token != cherrystrap.API_TOKEN:
-            return "{\"error\": \"Invalid Token\"}"
+            return "{\"message\": \"Error: Invalid Token\"}"
 
         configuration = {
             "server": {
@@ -57,78 +55,142 @@ class settings(object):
 
     def POST(self, token=None):
         if token != cherrystrap.API_TOKEN:
-            return "{\"error\": \"Invalid Token\"}"
-        return "{\"error\": \"PUT not available at this endpoint\"}"
+            return "{\"message\": \"Error: Invalid Token\"}"
+        return "{\"message\": \"Error: PUT not available at this endpoint\"}"
 
     def PUT(self, token=None, **kwargs):
 
         if token != cherrystrap.API_TOKEN:
-            return "{\"error\": \"Invalid Token\"}"
+            return "{\"message\": \"Error: Invalid Token\"}"
 
-        cherrystrap.APP_NAME = kwargs.pop('app_name', 'CherryStrap')
-        cherrystrap.LOGDIR = kwargs.pop('logdir', None)
-        cherrystrap.HTTP_HOST = kwargs.pop('http_host', '0.0.0.0')
-        try:
-            cherrystrap.HTTP_PORT = int(kwargs.pop('http_port', 7889))
-        except:
-            pass
-        cherrystrap.HTTPS_ENABLED = kwargs.pop('https_enabled', False) == 'on'
-        cherrystrap.HTTPS_KEY = kwargs.pop('https_key', 'keys/server.key')
-        cherrystrap.HTTPS_CERT = kwargs.pop('https_cert', 'keys/server.crt')
-        cherrystrap.VERIFY_SSL = kwargs.pop('verify_ssl', True) == 'on'
-        cherrystrap.LAUNCH_BROWSER = kwargs.pop('launch_browser', False) == 'on'
-        cherrystrap.HTTP_USER = kwargs.pop('http_user', None)
-        httpPassProcess = kwargs.pop('http_pass', None)
-        if httpPassProcess != cherrystrap.HTTP_PASS and httpPassProcess != "":
+        errorList = []
+        # Commented section below shows an example of how to receive
+        # application/json formatted items. We'll keep it default
+        # try:
+        #     data = json.loads(cherrypy.request.body.read())
+        #     for kvPair in data:
+        #         dictName = kvPair['name']
+        #         dictValue = kvPair['value']
+        #         print dictName, dictValue
+        # except:
+        #     pass
+
+        if 'appName' in kwargs:
+            cherrystrap.APP_NAME = kwargs.pop('appName', 'CherryStrap')
+        if 'logDir' in kwargs:
+            cherrystrap.LOGDIR = kwargs.pop('logDir', None)
+        if 'httpHost' in kwargs:
+            cherrystrap.HTTP_HOST = kwargs.pop('httpHost', '0.0.0.0')
+        if 'httpPort' in kwargs:
             try:
-                cherrystrap.HTTP_PASS = sha256_crypt.encrypt(httpPassProcess)
-            except Exception, e:
-                logger.error('There was a problem generating password hash: %s' % e)
-        elif httpPassProcess == "":
-            cherrystrap.HTTP_PASS = ""
-        cherrystrap.HTTP_LOOK = kwargs.pop('http_look', 'bootstrap')
-        cherrystrap.API_TOKEN = kwargs.pop('api_token', None)
-        cherrystrap.DATABASE_TYPE = kwargs.pop('database_type', 'sqlite')
-        cherrystrap.MYSQL_HOST = kwargs.pop('mysql_host', 'localhost')
-        try:
-            cherrystrap.MYSQL_PORT = int(kwargs.pop('mysql_port', 3306))
-        except:
-            pass
-        cherrystrap.MYSQL_USER = kwargs.pop('mysql_user', None)
-        mysqlPassProcess = kwargs.pop('mysql_pass', None)
-        if mysqlPassProcess != cherrystrap.MYSQL_PASS and mysqlPassProcess != "":
+                cherrystrap.HTTP_PORT = int(kwargs.pop('httpPort', 7889))
+            except:
+                errorList.append("httpPort must be an integer")
+                kwargs.pop('httpPort', 7889)
+
+        if 'sslEnabled' in kwargs:
+            cherrystrap.HTTPS_ENABLED = kwargs.pop('sslEnabled', False) == 'true'
+        elif 'sslEnabledHidden' in kwargs:
+            cherrystrap.HTTPS_ENABLED = kwargs.pop('sslEnabledHidden', False) == 'true'
+        if 'sslKey' in kwargs:
+            cherrystrap.HTTPS_KEY = kwargs.pop('sslKey', 'keys/server.key')
+        if 'sslCert' in kwargs:
+            cherrystrap.HTTPS_CERT = kwargs.pop('sslCert', 'keys/server.crt')
+        if 'sslVerify' in kwargs:
+            cherrystrap.VERIFY_SSL = kwargs.pop('sslVerify', True) == 'true'
+        elif 'sslVerifyHidden' in kwargs:
+            cherrystrap.VERIFY_SSL = kwargs.pop('sslVerifyHidden', True) == 'true'
+        if 'launchBrowser' in kwargs:
+            cherrystrap.LAUNCH_BROWSER = kwargs.pop('launchBrowser', False) == 'true'
+        elif 'launchBrowserHidden' in kwargs:
+            cherrystrap.LAUNCH_BROWSER = kwargs.pop('launchBrowserHidden', False) == 'true'
+
+        if 'httpUser' in kwargs:
+            cherrystrap.HTTP_USER = kwargs.pop('httpUser', None)
+        if 'httpPass' in kwargs:
+            httpPassProcess = kwargs.pop('httpPass', None)
+            if httpPassProcess != cherrystrap.HTTP_PASS and httpPassProcess != "":
+                try:
+                    cherrystrap.HTTP_PASS = sha256_crypt.encrypt(httpPassProcess)
+                except Exception, e:
+                    logger.error('There was a problem generating password hash: %s' % e)
+            elif httpPassProcess == "":
+                cherrystrap.HTTP_PASS = ""
+        if 'httpLook' in kwargs:
+            cherrystrap.HTTP_LOOK = kwargs.pop('httpLook', 'bootstrap')
+        if 'apiToken' in kwargs:
+            cherrystrap.API_TOKEN = kwargs.pop('apiToken', None)
+
+        if 'dbType' in kwargs:
+            cherrystrap.DATABASE_TYPE = kwargs.pop('dbType', 'sqlite')
+        if 'mysqlHost' in kwargs:
+            cherrystrap.MYSQL_HOST = kwargs.pop('mysqlHost', 'localhost')
+        if 'mysqlPort' in kwargs:
             try:
-                cherrystrap.MYSQL_PASS = formatter.encode('obscure', mysqlPassProcess)
-            except Exception, e:
-                logger.error('There was a problem encoding MySQL password: %s' % e)
-        elif mysqlPassProcess == "":
-            cherrystrap.MYSQL_PASS = ""
-        cherrystrap.GIT_ENABLED = kwargs.pop('git_enabled', False) == 'on'
-        cherrystrap.GIT_PATH = kwargs.pop('git_path', None)
-        cherrystrap.GIT_USER = kwargs.pop('git_user', 'theguardian')
-        cherrystrap.GIT_REPO = kwargs.pop('git_repo', 'CherryStrap')
-        cherrystrap.GIT_BRANCH = kwargs.pop('git_branch', 'master')
-        cherrystrap.GIT_UPSTREAM = kwargs.pop('git_upstream', None)
-        cherrystrap.GIT_LOCAL = kwargs.pop('git_local', None)
-        cherrystrap.GIT_STARTUP = kwargs.pop('git_startup', False) == 'on'
-        try:
-            cherrystrap.GIT_INTERVAL = int(kwargs.pop('git_interval', 0))
-        except:
-            cherrystrap.GIT_INTERVAL = 12
-        cherrystrap.GIT_OVERRIDE = kwargs.pop('git_override', False) == 'on'
+                cherrystrap.MYSQL_PORT = int(kwargs.pop('mysqlPort', 3306))
+            except:
+                errorList.append("mysqlPort must be an integer")
+                kwargs.pop('MySQLPort', 3306)
+        if 'mysqlUser' in kwargs:
+            cherrystrap.MYSQL_USER = kwargs.pop('mysqlUser', None)
+        if 'mysqlPass' in kwargs:
+            mysqlPassProcess = kwargs.pop('mysqlPass', None)
+            if mysqlPassProcess != cherrystrap.MYSQL_PASS and mysqlPassProcess != "":
+                try:
+                    cherrystrap.MYSQL_PASS = formatter.encode('obscure', mysqlPassProcess)
+                except Exception, e:
+                    logger.error('There was a problem encoding MySQL password: %s' % e)
+            elif mysqlPassProcess == "":
+                cherrystrap.MYSQL_PASS = ""
+
+        if 'gitEnabled' in kwargs:
+            cherrystrap.GIT_ENABLED = kwargs.pop('gitEnabled', False) == 'true'
+        elif 'gitEnabledHidden' in kwargs:
+            cherrystrap.GIT_ENABLED = kwargs.pop('gitEnabledHidden', False) == 'true'
+        if 'gitPath' in kwargs:
+            cherrystrap.GIT_PATH = kwargs.pop('gitPath', None)
+        if 'gitUser' in kwargs:
+            cherrystrap.GIT_USER = kwargs.pop('gitUser', 'theguardian')
+        if 'gitRepo' in kwargs:
+            cherrystrap.GIT_REPO = kwargs.pop('gitRepo', 'CherryStrap')
+        if 'gitBranch' in kwargs:
+            cherrystrap.GIT_BRANCH = kwargs.pop('gitBranch', 'master')
+        if 'gitUpstream' in kwargs:
+            cherrystrap.GIT_UPSTREAM = kwargs.pop('gitUpstream', None)
+        if 'gitLocal' in kwargs:
+            cherrystrap.GIT_LOCAL = kwargs.pop('gitLocal', None)
+        if 'gitStartup' in kwargs:
+            cherrystrap.GIT_STARTUP = kwargs.pop('gitStartup', False) == 'true'
+        elif 'gitStartupHidden' in kwargs:
+            cherrystrap.GIT_STARTUP = kwargs.pop('gitStartupHidden', False) == 'true'
+        if 'gitInterval' in kwargs:
+            try:
+                cherrystrap.GIT_INTERVAL = int(kwargs.pop('gitInterval', 0))
+            except:
+                cherrystrap.GIT_INTERVAL = 12
+                errorList.append("gitInterval must be an integer")
+                kwargs.pop('gitInterval', 12)
+        if 'gitOverride' in kwargs:
+            cherrystrap.GIT_OVERRIDE = kwargs.pop('gitOverride', False) == 'true'
+        elif 'gitOverrideHidden' in kwargs:
+            cherrystrap.GIT_OVERRIDE = kwargs.pop('gitOverrideHidden', False) == 'true'
 
         if len(kwargs) != 0:
-            logger.warn("Configuration update contained unexpected keywords: %s" % json.dumps(kwargs))
-            return "Configuration update was successful, but contained unexpected keywords: %s" % json.dumps(kwargs)
+            for key, value in kwargs.items():
+                errorList.append("Key %s not expected" % key)
 
         cherrystrap.config_write()
-        logger.info("All configuration settings posted successfully")
-        return "{\"success\": \"All configuration settings posted successfully\"}"
+        if not errorList:
+            logger.info("All configuration settings successfully updated")
+            return "{\"message\": \"Success: All configuration settings successfully updated\"}"
+        else:
+            logger.warn("The following error(s) occurred while attempting to update settings: %s" % errorList)
+            return "{\"message\": \"The following error(s) occurred while attempting to update settings: %s\"}" % errorList
 
     def DELETE(self, token=None):
         if token != cherrystrap.API_TOKEN:
-            return "{\"error\": \"Invalid Token\"}"
-        return "{\"error\": \"DELETE not available at this endpoint\"}"
+            return "{\"message\": \"Error: Invalid Token\"}"
+        return "{\"message\": \"Error: DELETE not available at this endpoint\"}"
 
 class log(object):
     exposed = True
@@ -136,7 +198,7 @@ class log(object):
     def GET(self, token=None, draw=1, start=0, length=100, **kwargs):
 
         if token != cherrystrap.API_TOKEN:
-            return "{\"error\": \"Invalid Token\"}"
+            return "{\"message\": \"Error: Invalid Token\"}"
 
         start = int(start)
         length = int(length)
@@ -183,15 +245,15 @@ class log(object):
 
     def POST(self):
         if token != cherrystrap.API_TOKEN:
-            return "{\"error\": \"Invalid Token\"}"
-        return "{\"error\": \"POST not available at this endpoint\"}"
+            return "{\"message\": \"Error: Invalid Token\"}"
+        return "{\"message\": \"Error: POST not available at this endpoint\"}"
 
     def PUT(self):
         if token != cherrystrap.API_TOKEN:
-            return "{\"error\": \"Invalid Token\"}"
-        return "{\"error\": \"PUT not available at this endpoint\"}"
+            return "{\"message\": \"Error: Invalid Token\"}"
+        return "{\"message\": \"Error: PUT not available at this endpoint\"}"
 
     def DELETE(self):
         if token != cherrystrap.API_TOKEN:
-            return "{\"error\": \"Invalid Token\"}"
-        return "{\"error\": \"DELETE not available at this endpoint\"}"
+            return "{\"message\": \"Error: Invalid Token\"}"
+        return "{\"message\": \"Error: DELETE not available at this endpoint\"}"
