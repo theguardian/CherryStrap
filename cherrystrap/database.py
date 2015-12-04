@@ -9,8 +9,6 @@ from cherrystrap import logger, formatter
 
 db_lock = threading.Lock()
 
-print cherrystrap.APP_NAME
-
 def dbFilename(filename="%s.db" % cherrystrap.APP_NAME):
     return os.path.join(cherrystrap.DATADIR, filename)
 
