@@ -10,7 +10,7 @@ class settings(object):
     def GET(self, token=None):
 
         if token != cherrystrap.API_TOKEN:
-            return "{\"message\": \"Error: Invalid Token\"}"
+            return "{\"status\": \"error\", \"message\": \"Invalid Token\"}"
 
         configuration = {
             "server": {
@@ -55,13 +55,13 @@ class settings(object):
 
     def POST(self, token=None):
         if token != cherrystrap.API_TOKEN:
-            return "{\"message\": \"Error: Invalid Token\"}"
-        return "{\"message\": \"Error: PUT not available at this endpoint\"}"
+            return "{\"status\": \"error\", \"message\": \"Invalid Token\"}"
+        return "{\"status\": \"error\", \"message\": \"POST not available at this endpoint\"}"
 
     def PUT(self, token=None, **kwargs):
 
         if token != cherrystrap.API_TOKEN:
-            return "{\"message\": \"Error: Invalid Token\"}"
+            return "{\"status\": \"error\", \"message\": \"Invalid Token\"}"
 
         errorList = []
         # Commented section below shows an example of how to receive
@@ -182,15 +182,17 @@ class settings(object):
         cherrystrap.config_write()
         if not errorList:
             logger.info("All configuration settings successfully updated")
-            return "{\"message\": \"Success: All configuration settings successfully updated\"}"
+            return "{\"status\": \"success\", \
+                \"message\": \"All configuration settings successfully updated\"}"
         else:
             logger.warn("The following error(s) occurred while attempting to update settings: %s" % errorList)
-            return "{\"message\": \"The following error(s) occurred while attempting to update settings: %s\"}" % errorList
+            return "{\"status\": \"warning\", \
+                \"message\": \"The following error(s) occurred while attempting to update settings: %s\"}" % errorList
 
     def DELETE(self, token=None):
         if token != cherrystrap.API_TOKEN:
-            return "{\"message\": \"Error: Invalid Token\"}"
-        return "{\"message\": \"Error: DELETE not available at this endpoint\"}"
+            return "{\"status\": \"error\", \"message\": \"Invalid Token\"}"
+        return "{\"status\": \"error\", \"message\": \"DELETE not available at this endpoint\"}"
 
 class log(object):
     exposed = True
@@ -198,7 +200,7 @@ class log(object):
     def GET(self, token=None, draw=1, start=0, length=100, **kwargs):
 
         if token != cherrystrap.API_TOKEN:
-            return "{\"message\": \"Error: Invalid Token\"}"
+            return "{\"status\": \"error\", \"message\": \"Invalid Token\"}"
 
         start = int(start)
         length = int(length)
@@ -245,15 +247,15 @@ class log(object):
 
     def POST(self):
         if token != cherrystrap.API_TOKEN:
-            return "{\"message\": \"Error: Invalid Token\"}"
-        return "{\"message\": \"Error: POST not available at this endpoint\"}"
+            return "{\"status\": \"error\", \"message\": \"Invalid Token\"}"
+        return "{\"status\": \"error\", \"message\": \"POST not available at this endpoint\"}"
 
     def PUT(self):
         if token != cherrystrap.API_TOKEN:
-            return "{\"message\": \"Error: Invalid Token\"}"
-        return "{\"message\": \"Error: PUT not available at this endpoint\"}"
+            return "{\"status\": \"error\", \"message\": \"Invalid Token\"}"
+        return "{\"status\": \"error\", \"message\": \"PUT not available at this endpoint\"}"
 
     def DELETE(self):
         if token != cherrystrap.API_TOKEN:
-            return "{\"message\": \"Error: Invalid Token\"}"
-        return "{\"message\": \"Error: DELETE not available at this endpoint\"}"
+            return "{\"status\": \"error\", \"message\": \"Invalid Token\"}"
+        return "{\"status\": \"error\", \"message\": \"DELETE not available at this endpoint\"}"

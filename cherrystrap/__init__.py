@@ -405,6 +405,7 @@ def dbcheck(dbType=DATABASE_TYPE):
             import sqlite3
         except Exception, e:
             logger.warn("SQLite is not installed: %s" % e)
+        DBFILE = os.path.join(DATADIR, '%s.db' % APP_NAME)
         conn = sqlite3.connect(DBFILE)
         c = conn.cursor()
         # Create and modify your database here
@@ -439,7 +440,6 @@ def dbcheck(dbType=DATABASE_TYPE):
         #     logger.warn("There was a problem creating the MySQL database: %s" % e)
 
         # Now we're free to build our schema
-
         try:
             conn = MySQLdb.Connection(host=MYSQL_HOST, port=MYSQL_PORT,
             user=MYSQL_USER, passwd=formatter.decode('obscure', MYSQL_PASS),

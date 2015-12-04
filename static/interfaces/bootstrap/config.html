@@ -293,7 +293,7 @@
         success: function(data)
         {
             var message = JSON.parse(data)
-            $(".ajaxMsg").html('<div class="alert alert-success">'+message['message']+'</div>').show().fadeOut(5000);
+            $(".ajaxMsg").html('<div class="alert alert-'+message['status']+'">'+message['message']+'</div>').show().fadeOut(5000);
         },
         error: function(XMLHttpRequest, textStatus, errorThrown) {
             $(".ajaxMsg").html('<div class="alert alert-danger">'+textStatus+': '+errorThrown+'</div>').show().fadeOut(5000);
