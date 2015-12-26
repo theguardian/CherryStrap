@@ -7,13 +7,15 @@ runtime commands like daemonizing, restarting, and shutting down the web app.
 
 from __future__ import with_statement
 
-import os, sys, subprocess, threading, cherrypy, datetime, uuid, ast
+import os, sys, subprocess, threading, cherrypy, datetime, uuid
 
 from lib.configobj.configobj import ConfigObj
 from lib.apscheduler.schedulers.background import BackgroundScheduler
 from lib.apscheduler.triggers.interval import IntervalTrigger
 from lib.apscheduler.triggers.cron import CronTrigger
 from cherrystrap import logger, formatter, versioncheck
+from configCheck import CheckSection, check_setting_int, check_setting_bool, check_setting_str
+from initializeDb import createDb
 
 FULL_PATH = None
 PROG_DIR = None
@@ -77,67 +79,6 @@ GIT_PATH = None
 GIT_STARTUP = False
 GIT_INTERVAL = 0
 
-def CheckSection(sec):
-    """ Check if INI section exists, if not create it """
-    try:
-        CFG[sec]
-        return True
-    except:
-        CFG[sec] = {}
-        return False
-
-################################################################################
-# Check_setting_int                                                            #
-################################################################################
-def check_setting_int(config, cfg_name, item_name, def_val):
-    try:
-        my_val = int(config[cfg_name][item_name])
-    except:
-        my_val = def_val
-        try:
-            config[cfg_name][item_name] = my_val
-            logger.debug("Bad value for %s in config.ini. Reverting to default" % item_name)
-        except:
-            config[cfg_name] = {}
-            config[cfg_name][item_name] = my_val
-            logger.debug("Bad default value for %s. Application may break" % item_name)
-    logger.debug(item_name + " -> " + str(my_val))
-    return my_val
-
-################################################################################
-# Check_setting_bool                                                            #
-################################################################################
-def check_setting_bool(config, cfg_name, item_name, def_val):
-    try:
-        my_val = ast.literal_eval(config[cfg_name][item_name])
-    except:
-        my_val = def_val
-        try:
-            config[cfg_name][item_name] = ast.literal_eval(my_val)
-            logger.debug("Bad value for %s in config.ini. Reverting to default" % item_name)
-        except:
-            config[cfg_name] = {}
-            config[cfg_name][item_name] = my_val
-            logger.debug("Bad default value for %s. Application may break" % item_name)
-    return my_val
-
-################################################################################
-# Check_setting_str                                                            #
-################################################################################
-def check_setting_str(config, cfg_name, item_name, def_val):
-    try:
-        my_val = str(config[cfg_name][item_name])
-    except:
-        my_val = def_val
-        try:
-            config[cfg_name][item_name] = ast.literal_eval(my_val)
-            logger.debug("Bad value for %s in config.ini. Reverting to default" % item_name)
-        except:
-            config[cfg_name] = {}
-            config[cfg_name][item_name] = my_val
-            logger.debug("Bad default value for %s. Application may break" % item_name)
-    return my_val
-
 def initialize():
 
     with INIT_LOCK:
@@ -153,18 +94,35 @@ def initialize():
         if __INITIALIZED__:
             return False
 
-        CheckSection('Server')
-        CheckSection('Interface')
-        CheckSection('Database')
-        CheckSection('Git')
+        CheckSection(CFG, 'Server')
+        CheckSection(CFG, 'Interface')
+        CheckSection(CFG, 'Database')
+        CheckSection(CFG, 'Git')
 
-        try:
-            HTTP_PORT = check_setting_int(CFG, 'Server', 'http_port', 7889)
-        except:
-            HTTP_PORT = 7889
+        LOGDIR = check_setting_str(CFG, 'Server', 'logDir', '')
 
-        if HTTP_PORT < 21 or HTTP_PORT > 65535:
-            HTTP_PORT = 7889
+        if not LOGDIR:
+            LOGDIR = os.path.join(DATADIR, 'Logs')
+
+        # Create logdir
+        if not os.path.exists(LOGDIR):
+            try:
+                os.makedirs(LOGDIR)
+            except OSError:
+                if LOGLEVEL:
+                    print LOGDIR + ":"
+                    print ' Unable to create folder for logs. Only logging to console.'
+
+        # Start the logger, silence console logging if we need to
+        logger.cherrystrap_log.initLogger(loglevel=LOGLEVEL)
+
+        # Put the cache dir in the data dir for now
+        CACHEDIR = os.path.join(DATADIR, 'cache')
+        if not os.path.exists(CACHEDIR):
+            try:
+                os.makedirs(CACHEDIR)
+            except OSError:
+                logger.error('Could not create cachedir. Check permissions of: ' + DATADIR)
 
         GIT_EXISTS = os.path.isdir(os.path.join(DATADIR, '.git'))
 
@@ -198,66 +156,61 @@ def initialize():
                 git_startup = False
                 git_interval = 0
 
-        APP_NAME = check_setting_str(CFG, 'Server', 'app_name', 'CherryStrap')
-        HTTP_ROOT = check_setting_str(CFG, 'Server', 'http_root', '')
-        LOGDIR = check_setting_str(CFG, 'Server', 'logdir', '')
-        HTTP_HOST = check_setting_str(CFG, 'Server', 'http_host', '0.0.0.0')
-        HTTPS_ENABLED = check_setting_bool(CFG, 'Server', 'https_enabled', False)
-        HTTPS_KEY = check_setting_str(CFG, 'Server', 'https_key', 'keys/server.key')
-        HTTPS_CERT = check_setting_str(CFG, 'Server', 'https_cert', 'keys/server.crt')
-        VERIFY_SSL = check_setting_bool(CFG, 'Server', 'verify_ssl', True)
-        LAUNCH_BROWSER = check_setting_bool(CFG, 'Server', 'launch_browser', False)
+        try:
+            HTTP_PORT = check_setting_int(CFG, 'Server', 'httpPort', 7889)
+        except:
+            HTTP_PORT = 7889
 
-        HTTP_USER = check_setting_str(CFG, 'Interface', 'http_user', '')
-        HTTP_PASS = check_setting_str(CFG, 'Interface', 'http_pass', '')
-        HTTP_LOOK = check_setting_str(CFG, 'Interface', 'http_look', 'bootstrap')
-        API_TOKEN = check_setting_str(CFG, 'Interface', 'api_token', uuid.uuid4().hex)
+        if HTTP_PORT < 21 or HTTP_PORT > 65535:
+            HTTP_PORT = 7889
 
-        DATABASE_TYPE = check_setting_str(CFG, 'Database', 'database_type', 'sqlite')
-        MYSQL_HOST = check_setting_str(CFG, 'Database', 'mysql_host', 'localhost')
-        MYSQL_PORT = check_setting_int(CFG, 'Database', 'mysql_port', 3306)
-        MYSQL_USER = check_setting_str(CFG, 'Database', 'mysql_user', '')
-        MYSQL_PASS = check_setting_str(CFG, 'Database', 'mysql_pass', '')
+        APP_NAME = check_setting_str(CFG, 'Server', 'appName', 'CherryStrap')
+        HTTP_ROOT = check_setting_str(CFG, 'Server', 'httpRoot', '')
+        HTTP_HOST = check_setting_str(CFG, 'Server', 'httpHost', '0.0.0.0')
+        HTTPS_ENABLED = check_setting_bool(CFG, 'Server', 'sslEnabled', False)
+        HTTPS_KEY = check_setting_str(CFG, 'Server', 'sslKey', 'keys/server.key')
+        HTTPS_CERT = check_setting_str(CFG, 'Server', 'sslCert', 'keys/server.crt')
+        VERIFY_SSL = check_setting_bool(CFG, 'Server', 'sslVerify', True)
+        LAUNCH_BROWSER = check_setting_bool(CFG, 'Server', 'launchBrowser', False)
 
-        GIT_ENABLED = check_setting_bool(CFG, 'Git', 'git_enabled', git_enabled)
-        GIT_PATH = check_setting_str(CFG, 'Git', 'git_path', git_path)
-        GIT_USER = check_setting_str(CFG, 'Git', 'git_user', 'theguardian')
-        GIT_REPO = check_setting_str(CFG, 'Git', 'git_repo', 'CherryStrap')
-        GIT_BRANCH = check_setting_str(CFG, 'Git', 'git_branch', 'master')
-        GIT_UPSTREAM = check_setting_str(CFG, 'Git', 'git_upstream', '')
-        GIT_LOCAL = check_setting_str(CFG, 'Git', 'git_local', '')
-        GIT_STARTUP = check_setting_bool(CFG, 'Git', 'git_startup', git_startup)
-        GIT_INTERVAL = check_setting_int(CFG, 'Git', 'git_interval', git_interval)
-        GIT_OVERRIDE = check_setting_bool(CFG, 'Git', 'git_override', False)
+        HTTP_USER = check_setting_str(CFG, 'Interface', 'httpUser', '')
+        HTTP_PASS = check_setting_str(CFG, 'Interface', 'httpPass', '')
+        HTTP_LOOK = check_setting_str(CFG, 'Interface', 'httpLook', 'bootstrap')
+        API_TOKEN = check_setting_str(CFG, 'Interface', 'apiToken', uuid.uuid4().hex)
 
-        if not LOGDIR:
-            LOGDIR = os.path.join(DATADIR, 'Logs')
+        DATABASE_TYPE = check_setting_str(CFG, 'Database', 'dbType', '')
+        MYSQL_HOST = check_setting_str(CFG, 'Database', 'mysqlHost', 'localhost')
+        MYSQL_PORT = check_setting_int(CFG, 'Database', 'mysqlPort', 3306)
+        MYSQL_USER = check_setting_str(CFG, 'Database', 'mysqlUser', '')
+        MYSQL_PASS = check_setting_str(CFG, 'Database', 'mysqlPass', '')
 
-        # Put the cache dir in the data dir for now
-        CACHEDIR = os.path.join(DATADIR, 'cache')
-        if not os.path.exists(CACHEDIR):
-            try:
-                os.makedirs(CACHEDIR)
-            except OSError:
-                logger.error('Could not create cachedir. Check permissions of: ' + DATADIR)
+        GIT_ENABLED = check_setting_bool(CFG, 'Git', 'gitEnabled', git_enabled)
+        GIT_PATH = check_setting_str(CFG, 'Git', 'gitPath', git_path)
+        GIT_USER = check_setting_str(CFG, 'Git', 'gitUser', 'theguardian')
+        GIT_REPO = check_setting_str(CFG, 'Git', 'gitRepo', 'CherryStrap')
+        GIT_BRANCH = check_setting_str(CFG, 'Git', 'gitBranch', 'master')
+        GIT_UPSTREAM = check_setting_str(CFG, 'Git', 'gitUpstream', '')
+        GIT_LOCAL = check_setting_str(CFG, 'Git', 'gitLocal', '')
+        GIT_STARTUP = check_setting_bool(CFG, 'Git', 'gitStartup', git_startup)
+        GIT_INTERVAL = check_setting_int(CFG, 'Git', 'gitInterval', git_interval)
+        GIT_OVERRIDE = check_setting_bool(CFG, 'Git', 'gitOverride', False)
 
-        # Create logdir
-        if not os.path.exists(LOGDIR):
-            try:
-                os.makedirs(LOGDIR)
-            except OSError:
-                if LOGLEVEL:
-                    print LOGDIR + ":"
-                    print ' Unable to create folder for logs. Only logging to console.'
+        #===============================================================
+        # Import a variable definer / checker from your app's __init__.py
+        try:
+            from yourapp import injectVarCheck
+            injectVarCheck(CFG)
+        except Exception, e:
+            logger.debug("There was a problem importing application variable definitions: %s" % e)
+        #================================================================
 
-        # Start the logger, silence console logging if we need to
-        logger.cherrystrap_log.initLogger(loglevel=LOGLEVEL)
 
         # Initialize the database
         try:
-            dbcheck(DATABASE_TYPE)
+            createDb(DATABASE_TYPE, DATADIR, APP_NAME, MYSQL_HOST, MYSQL_PORT,
+                MYSQL_USER, MYSQL_PASS)
         except Exception, e:
-            logger.error("Can't connect to the database: %s" % e)
+            logger.error("Error initializing the database: %s" % e)
 
         # Disable SSL verification for systems where SSL is broken
         if not VERIFY_SSL:
@@ -274,7 +227,7 @@ def initialize():
         GIT_LOCAL, GIT_BRANCH = versioncheck.getVersion()
 
         # Write current version to a file, so we know which version did work.
-        # This allowes one to restore to that version. The idea is that if we
+        # This allows one to restore to that version. The idea is that if we
         # arrive here, most parts of the app seem to work.
         if GIT_LOCAL:
             version_lock_file = os.path.join(DATADIR, "version.lock")
@@ -358,99 +311,52 @@ def config_write():
     new_config.filename = CONFIGFILE
 
     new_config['Server'] = {}
-    new_config['Server']['app_name'] = APP_NAME
-    new_config['Server']['http_root'] = HTTP_ROOT
-    new_config['Server']['logdir'] = LOGDIR
-    new_config['Server']['http_host'] = HTTP_HOST
-    new_config['Server']['http_port'] = HTTP_PORT
-    new_config['Server']['https_enabled'] = HTTPS_ENABLED
-    new_config['Server']['https_key'] = HTTPS_KEY
-    new_config['Server']['https_cert'] = HTTPS_CERT
-    new_config['Server']['verify_ssl'] = VERIFY_SSL
-    new_config['Server']['launch_browser'] = LAUNCH_BROWSER
+    new_config['Server']['appName'] = APP_NAME
+    new_config['Server']['httpRoot'] = HTTP_ROOT
+    new_config['Server']['logDir'] = LOGDIR
+    new_config['Server']['httpHost'] = HTTP_HOST
+    new_config['Server']['httpPort'] = HTTP_PORT
+    new_config['Server']['sslEnabled'] = HTTPS_ENABLED
+    new_config['Server']['sslKey'] = HTTPS_KEY
+    new_config['Server']['sslCert'] = HTTPS_CERT
+    new_config['Server']['sslVerify'] = VERIFY_SSL
+    new_config['Server']['launchBrowser'] = LAUNCH_BROWSER
 
     new_config['Interface'] = {}
-    new_config['Interface']['http_user'] = HTTP_USER
-    new_config['Interface']['http_pass'] = HTTP_PASS
-    new_config['Interface']['http_look'] = HTTP_LOOK
-    new_config['Interface']['api_token'] = API_TOKEN
+    new_config['Interface']['httpUser'] = HTTP_USER
+    new_config['Interface']['httpPass'] = HTTP_PASS
+    new_config['Interface']['httpLook'] = HTTP_LOOK
+    new_config['Interface']['apiToken'] = API_TOKEN
 
     new_config['Database'] = {}
-    new_config['Database']['database_type'] = DATABASE_TYPE
-    new_config['Database']['mysql_host'] = MYSQL_HOST
-    new_config['Database']['mysql_port'] = MYSQL_PORT
-    new_config['Database']['mysql_user'] = MYSQL_USER
-    new_config['Database']['mysql_pass'] = MYSQL_PASS
+    new_config['Database']['dbType'] = DATABASE_TYPE
+    new_config['Database']['mysqlHost'] = MYSQL_HOST
+    new_config['Database']['mysqlPort'] = MYSQL_PORT
+    new_config['Database']['mysqlUser'] = MYSQL_USER
+    new_config['Database']['mysqlPass'] = MYSQL_PASS
 
     new_config['Git'] = {}
-    new_config['Git']['git_enabled'] = GIT_ENABLED
-    new_config['Git']['git_path'] = GIT_PATH
-    new_config['Git']['git_user'] = GIT_USER
-    new_config['Git']['git_repo'] = GIT_REPO
-    new_config['Git']['git_branch'] = GIT_BRANCH
-    new_config['Git']['git_upstream'] = GIT_UPSTREAM
-    new_config['Git']['git_local'] = GIT_LOCAL
-    new_config['Git']['git_startup'] = GIT_STARTUP
-    new_config['Git']['git_interval'] = GIT_INTERVAL
-    new_config['Git']['git_override'] = GIT_OVERRIDE
+    new_config['Git']['gitEnabled'] = GIT_ENABLED
+    new_config['Git']['gitPath'] = GIT_PATH
+    new_config['Git']['gitUser'] = GIT_USER
+    new_config['Git']['gitRepo'] = GIT_REPO
+    new_config['Git']['gitBranch'] = GIT_BRANCH
+    new_config['Git']['gitUpstream'] = GIT_UPSTREAM
+    new_config['Git']['gitLocal'] = GIT_LOCAL
+    new_config['Git']['gitStartup'] = GIT_STARTUP
+    new_config['Git']['gitInterval'] = GIT_INTERVAL
+    new_config['Git']['gitOverride'] = GIT_OVERRIDE
+
+    #===============================================================
+    # Import a variable writer from your app's __init__.py
+    try:
+        from yourapp import injectVarWrite
+        injectVarWrite(new_config)
+    except Exception, e:
+        logger.debug("There was a problem importing application variables to write: %s" % e)
+    #================================================================
 
     new_config.write()
-
-def dbcheck(dbType=DATABASE_TYPE):
-
-    # User should have a choice between sqlite and mysql
-
-    if dbType == "sqlite":
-        try:
-            import sqlite3
-        except Exception, e:
-            logger.warn("SQLite is not installed: %s" % e)
-        DBFILE = os.path.join(DATADIR, '%s.db' % APP_NAME)
-        conn = sqlite3.connect(DBFILE)
-        c = conn.cursor()
-        # Create and modify your database here
-
-        # c.execute('CREATE TABLE IF NOT EXISTS authors (AuthorID TEXT, AuthorName TEXT UNIQUE)')
-        # try:
-        #     c.execute('SELECT UnignoredBooks from authors')
-        #     logger.info('Updating database to hold UnignoredBooks')
-        # except sqlite3.OperationalError:
-        #     logger.error('Could not create column Unignored Books in table authors')
-        #     c.execute('ALTER TABLE authors ADD COLUMN UnignoredBooks INTEGER')
-
-        conn.commit()
-        c.close()
-    elif dbType == "mysql":
-        try:
-            import MySQLdb
-        except ImportError:
-            logger.warn("The MySQLdb module is missing. Install this " \
-                "module to enable MySQL. Please revert to SQLite.")
-
-        # Uncomment this if you have mysql configured and want to create a db
-        # try:
-        #     conn_ini = MySQLdb.Connection(host=MYSQL_HOST, port=MYSQL_PORT,
-        #     user=MYSQL_USER, passwd=formatter.decode('obscure', MYSQL_PASS),
-        #     charset='utf8', use_unicode=True)
-        #     c_ini = conn_ini.cursor(MySQLdb.cursors.DictCursor)
-        #     c_ini.execute('CREATE DATABASE IF NOT EXISTS %s' % APP_NAME)
-        #     conn_ini.commit()
-        #     c_ini.close()
-        # except Exception, e:
-        #     logger.warn("There was a problem creating the MySQL database: %s" % e)
-
-        # Now we're free to build our schema
-        try:
-            conn = MySQLdb.Connection(host=MYSQL_HOST, port=MYSQL_PORT,
-            user=MYSQL_USER, passwd=formatter.decode('obscure', MYSQL_PASS),
-            charset='utf8', use_unicode=True, db=APP_NAME)
-            c = conn.cursor(MySQLdb.cursors.DictCursor)
-            # table creation and augment statements go here
-            #c.execute('CREATE TABLE IF NOT EXISTS authors (AuthorID VARCHAR(30) PRIMARY KEY, AuthorName TEXT)')
-            conn.commit()
-            c.close()
-        except Exception, e:
-            logger.warn("There was a problem initializing the MySQL database: %s" % e)
 
 def start():
     global __INITIALIZED__, scheduler_started

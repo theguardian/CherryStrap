@@ -96,6 +96,7 @@
         <div class="col-md-12 form-group">
           <label for="dbType">Database Type</label>
           <select name="dbType" class="form-control" id="dbType">
+            <option value="" id="disabled">Disabled</option>
             <option value="sqlite" id="sqlite">sqlite</option>
             <option value="mysql" id="mysql">mysql</option>
           </select>
@@ -261,11 +262,11 @@
   });
 
   $('#dbType').change(function(){
-     if($(this).val() == 'sqlite'){
-         $('#mysqlGroup').hide();
+     if($(this).val() == 'mysql'){
+         $('#mysqlGroup').show();
          return true;
      }
-     $('#mysqlGroup').show();
+     $('#mysqlGroup').hide();
   });
 
   $('#gitEnabled').click(function() {
