@@ -10,24 +10,27 @@
 
 <%def name="body()">
 <h1>Log Viewer</h1>
-	<div class="row col-md-12 logTable">
-		<table class="table table-striped" id="log_table">
-			<thead>
-				<tr>
-					<th id="timestamp">Timestamp</th>
-					<th id="level">Level</th>
-					<th id="thread">Thread</th>
-					<th id="message">Message</th>
-				</tr>
-			</thead>
-		</table>
+	<div class="row">
+		<div class="col-md-12 table-responsive">
+			<table class="table table-striped" id="log_table">
+				<thead>
+					<tr>
+						<th id="timestamp">Timestamp</th>
+						<th id="level">Level</th>
+						<th id="thread">Thread</th>
+						<th id="message">Message</th>
+					</tr>
+				</thead>
+			</table>
+		</div>
 	</div>
 
 	<div class="well col-md-12" style="margin-top:15px">
 		<div class="col-md-4 col-md-offset-4 input-group">
 			<div class="input-group-addon">Refresh:&nbsp;</div>
 			<select name="refresh_rate" class="form-control" id="refreshrate" onchange="setRefresh()">
-				<option value="0" selected="selected">0</option>
+				<option value="0" selected="selected">Disable</option>
+				<option value="2">2</option>
 				<option value="5">5</option>
 				<option value="15">15</option>
 				<option value="30">30</option>
