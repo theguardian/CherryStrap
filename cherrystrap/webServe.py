@@ -26,6 +26,7 @@ class WebInterface(object):
 
     _cp_config = {
         'tools.sessions.on': True,
+        'tools.sessions.timeout': 10080,
         'tools.auth.on': True,
         'error_page.404': error_page_404,
         'request.error_response': handle_error
