@@ -109,7 +109,7 @@ class MySQL_DBConnection:
         user = cherrystrap.MYSQL_USER
         passwd = formatter.decode('obscure', cherrystrap.MYSQL_PASS)
 
-        self.connection = MySQLdb.Connection(host=host, port=port, user=user, passwd=passwd, charset='utf8', use_unicode=True)
+        self.connection = MySQLdb.Connection(host=host, port=port, user=user, passwd=passwd, db=cherrystrap.APP_NAME, charset='utf8', use_unicode=True)
 
     def action(self, query, args=None):
 
