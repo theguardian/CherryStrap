@@ -9,13 +9,13 @@ from __future__ import with_statement
 
 import os, sys, subprocess, threading, cherrypy, datetime, uuid
 
-from lib.configobj.configobj import ConfigObj
-from lib.apscheduler.schedulers.background import BackgroundScheduler
-from lib.apscheduler.triggers.interval import IntervalTrigger
-from lib.apscheduler.triggers.cron import CronTrigger
+from configobj import ConfigObj
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.interval import IntervalTrigger
+from apscheduler.triggers.cron import CronTrigger
 from cherrystrap import logger, formatter, versioncheck
-from configCheck import CheckSection, check_setting_int, check_setting_bool, check_setting_str
-from initializeDb import createDb
+from cherrystrap.configCheck import CheckSection, check_setting_int, check_setting_bool, check_setting_str
+from cherrystrap.initializeDb import createDb
 
 FULL_PATH = None
 PROG_DIR = None
@@ -102,7 +102,7 @@ def initialize():
         LOGDIR = check_setting_str(CFG, 'Server', 'logDir', '')
 
         if not LOGDIR:
-            LOGDIR = os.path.join(DATADIR, 'Logs')
+            LOGDIR = os.path.join(DATADIR, 'logs')
 
         # Create logdir
         if not os.path.exists(LOGDIR):
@@ -110,8 +110,8 @@ def initialize():
                 os.makedirs(LOGDIR)
             except OSError:
                 if LOGLEVEL:
-                    print LOGDIR + ":"
-                    print ' Unable to create folder for logs. Only logging to console.'
+                    print(LOGDIR + ":")
+                    print(' Unable to create folder for logs. Only logging to console.')
 
         # Start the logger, silence console logging if we need to
         logger.cherrystrap_log.initLogger(loglevel=LOGLEVEL)
@@ -134,7 +134,7 @@ def initialize():
                 logger.debug('Trying to execute: "' + cmd + '" with shell in ' + os.getcwd())
                 p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True, cwd=os.getcwd())
                 output, err = p.communicate()
-                output = output.strip()
+                output = output.decode('utf-8').strip()
                 logger.debug('Git output: ' + output)
             except OSError:
                 logger.debug('Command failed: %s', cmd)
@@ -175,7 +175,7 @@ def initialize():
 
         HTTP_USER = check_setting_str(CFG, 'Interface', 'httpUser', '')
         HTTP_PASS = check_setting_str(CFG, 'Interface', 'httpPass', '')
-        HTTP_LOOK = check_setting_str(CFG, 'Interface', 'httpLook', 'bootstrap')
+        HTTP_LOOK = check_setting_str(CFG, 'Interface', 'httpLook', 'bootstrap3')
         API_TOKEN = check_setting_str(CFG, 'Interface', 'apiToken', uuid.uuid4().hex)
 
         DATABASE_TYPE = check_setting_str(CFG, 'Database', 'dbType', '')
@@ -198,9 +198,9 @@ def initialize():
         #===============================================================
         # Import a variable definer / checker from your app's __init__.py
         try:
-            from yourapp import injectVarCheck
+            from appfiles import injectVarCheck
             injectVarCheck(CFG)
-        except Exception, e:
+        except Exception as e:
             logger.debug("There was a problem importing application variable definitions: %s" % e)
         #================================================================
 
@@ -209,7 +209,7 @@ def initialize():
         try:
             createDb(DATABASE_TYPE, DATADIR, APP_NAME, MYSQL_HOST, MYSQL_PORT,
                 MYSQL_USER, MYSQL_PASS)
-        except Exception, e:
+        except Exception as e:
             logger.error("Error initializing the database: %s" % e)
 
         # Disable SSL verification for systems where SSL is broken
@@ -218,7 +218,7 @@ def initialize():
                 import ssl
                 ssl._create_default_https_context = ssl._create_unverified_context
                 logger.info("SSL verification disabled per user preferences")
-            except Exception, e:
+            except Exception as e:
                 logger.warn("There was an error disabling SSL verification: %s" % s)
                 pass
 
@@ -266,7 +266,7 @@ def daemonize():
         pid = os.fork() #@UndefinedVariable - only available in UNIX
         if pid != 0:
             sys.exit(0)
-    except OSError, e:
+    except OSError as e:
         raise RuntimeError("1st fork failed: %s [%d]" % (e.strerror, e.errno))
 
     os.setsid() #@UndefinedVariable - only available in UNIX
@@ -280,10 +280,10 @@ def daemonize():
         pid = os.fork() #@UndefinedVariable - only available in UNIX
         if pid != 0:
             sys.exit(0)
-    except OSError, e:
+    except OSError as e:
         raise RuntimeError("2st fork failed: %s [%d]" % (e.strerror, e.errno))
 
-    dev_null = file('/dev/null', 'r')
+    dev_null = open('/dev/null', 'r')
     os.dup2(dev_null.fileno(), sys.stdin.fileno())
 
     if PIDFILE:
@@ -303,7 +303,7 @@ def launch_browser(host, port, root):
     try:
         import webbrowser
         webbrowser.open('%s://%s:%i%s' % (protocol, host, port, root))
-    except Exception, e:
+    except Exception as e:
         logger.error('Could not launch browser: %s' % e)
 
 def config_write():
@@ -350,9 +350,9 @@ def config_write():
     #===============================================================
     # Import a variable writer from your app's __init__.py
     try:
-        from yourapp import injectVarWrite
+        from appfiles import injectVarWrite
         injectVarWrite(new_config)
-    except Exception, e:
+    except Exception as e:
         logger.debug("There was a problem importing application variables to write: %s" % e)
     #================================================================
 
@@ -371,11 +371,12 @@ def start():
             if GIT_ENABLED and GIT_INTERVAL != 0:
                 gitInterval = IntervalTrigger(weeks=0, days=0, hours=GIT_INTERVAL, minutes=0, seconds=0, start_date=None, end_date=None, timezone=None)
                 SCHED.add_job(versioncheck.checkGithub, gitInterval)
+
             SCHED.start()
             for job in SCHED.get_jobs():
                 logger.info("Job scheduled: %s" % job)
             scheduler_started = True
-        except Exception, e:
+        except Exception as e:
             logger.error("Can't start scheduled job(s): %s" % e)
 
 def shutdown(restart=False, update=False):
@@ -384,7 +385,7 @@ def shutdown(restart=False, update=False):
 
     try:
         SCHED.shutdown(wait=True)
-    except Exception, e:
+    except Exception as e:
         logger.error("Can't shutdown scheduler: %s" % e)
 
     if not restart and not update:

@@ -1,6 +1,6 @@
 import os, sys, time, cherrypy, threading, locale
 import cherrystrap
-from lib.configobj.configobj import ConfigObj
+from configobj import ConfigObj
 from cherrystrap import webStart, logger
 
 def main():
@@ -68,7 +68,7 @@ def main():
             cherrystrap.LOGLEVEL = 0
             cherrystrap.daemonize()
         else:
-            print "Daemonize not supported under Windows, starting normally"
+            print("Daemonize not supported under Windows, starting normally")
 
     if options.nolaunch:
         cherrystrap.LAUNCH_BROWSER = False
@@ -76,7 +76,7 @@ def main():
     if options.datadir:
         cherrystrap.DATADIR = str(options.datadir)
     else:
-        cherrystrap.DATADIR = cherrystrap.PROG_DIR
+        cherrystrap.DATADIR = os.path.join(cherrystrap.PROG_DIR, "data")
 
     if options.config:
         cherrystrap.CONFIGFILE = str(options.config)
@@ -123,15 +123,15 @@ def main():
 
     # Try to start the server.
     webStart.initialize({
-                    'http_port': HTTP_PORT,
-                    'http_host': cherrystrap.HTTP_HOST,
-                    'http_root': cherrystrap.HTTP_ROOT,
-                    'http_user': cherrystrap.HTTP_USER,
-                    'http_pass': cherrystrap.HTTP_PASS,
-                    'https_enabled': cherrystrap.HTTPS_ENABLED,
-                    'https_key': cherrystrap.HTTPS_KEY,
-                    'https_cert': cherrystrap.HTTPS_CERT,
-                    'verify_ssl': cherrystrap.VERIFY_SSL
+                    'httpPort': HTTP_PORT,
+                    'httpHost': cherrystrap.HTTP_HOST,
+                    'httpRoot': cherrystrap.HTTP_ROOT,
+                    'httpUser': cherrystrap.HTTP_USER,
+                    'httpPass': cherrystrap.HTTP_PASS,
+                    'sslEnabled': cherrystrap.HTTPS_ENABLED,
+                    'sslKey': cherrystrap.HTTPS_KEY,
+                    'sslCert': cherrystrap.HTTPS_CERT,
+                    'sslVerify': cherrystrap.VERIFY_SSL
             })
 
     if cherrystrap.LAUNCH_BROWSER and not options.nolaunch:

@@ -3,7 +3,7 @@ from time import strptime
 
 def schedulerTest():
     now = datetime.datetime.now()
-    print "Scheduled Job completed at "+now.strftime("%Y-%m-%d %H:%M:%S")
+    print("Scheduled Job completed at "+now.strftime("%Y-%m-%d %H:%M:%S"))
     return now.strftime("%Y-%m-%d %H:%M:%S")
 
 def now():

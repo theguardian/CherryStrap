@@ -6,9 +6,9 @@ import os
 import tarfile
 import platform
 import subprocess
-import urllib2
 import cherrystrap
-import lib.simplejson as json
+import simplejson as json
+from urllib.request import urlopen
 
 from cherrystrap import logger
 
@@ -31,7 +31,7 @@ def runGit(args):
             logger.debug('Trying to execute: "' + cmd + '" with shell in ' + cherrystrap.PROG_DIR)
             p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True, cwd=cherrystrap.PROG_DIR)
             output, err = p.communicate()
-            output = output.strip()
+            output = output.decode('utf-8').strip()
 
             logger.debug('Git output: ' + output)
         except OSError:
@@ -115,9 +115,9 @@ def checkGithub():
     logger.info('Retrieving latest version information from GitHub')
     url = 'https://api.github.com/repos/%s/%s/commits/%s' % (cherrystrap.GIT_USER, cherrystrap.GIT_REPO, cherrystrap.GIT_BRANCH)
     try:
-        result = urllib2.urlopen(url).read()
+        result = urlopen(url).read()
         version = json.JSONDecoder().decode(result)
-    except Exception, e:
+    except Exception as e:
         logger.warn('Could not get the latest version from GitHub. Are you running a local development version?: %s' % e)
         return cherrystrap.GIT_LOCAL
 
@@ -136,7 +136,7 @@ def checkGithub():
     logger.info('Comparing currently installed version with latest GitHub version')
     url = 'https://api.github.com/repos/%s/%s/compare/%s...%s' % (cherrystrap.GIT_USER, cherrystrap.GIT_REPO, cherrystrap.GIT_UPSTREAM, cherrystrap.GIT_LOCAL)
     try:
-        result = urllib2.urlopen(url).read()
+        result = urlopen(url).read()
         commits = json.JSONDecoder().decode(result)
     except:
         logger.warn('Could not get commits behind from GitHub.')
@@ -182,7 +182,7 @@ def update():
         version_path = os.path.join(cherrystrap.PROG_DIR, 'version.txt')
 
         logger.info('Downloading update from: ' + tar_download_url)
-        data = urllib2.urlopen(tar_download_url)
+        data = urlopen(tar_download_url)
 
         if not data:
             logger.error("Unable to retrieve new version from '%s', can't update", tar_download_url)

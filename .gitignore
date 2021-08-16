@@ -1,11 +1,7 @@
 #  User Related   #
 ######################
-cache/*
-*.db
-*.lock
-config.ini
-Logs/*
-keys/*
+data/*
+static/images/server.png
 
 #  Compiled source   #
 ######################
@@ -25,7 +21,7 @@ keys/*
 ######################
 .Spotlight-V100
 .Trashes
-.DS_Store
+*DS_Store
 desktop.ini
 ehthumbs.db
 Thumbs.db

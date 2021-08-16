@@ -1,0 +1,37 @@
+<%inherit file="base.html"/>
+<%!
+	import cherrystrap
+%>
+
+<%def name="headIncludes()">
+<title>${cherrystrap.APP_NAME}: ${title}</title>
+</%def>
+
+<%def name="body()">
+
+<div class="row">
+	<form method="post" action="/auth/login">
+		%if source:
+			<input type="hidden" name="source" value="${source}" />
+		%endif
+	  <div class="col-md-4 col-md-offset-4 form-group">
+	    <input type="text" name="username" value="${username}" class="form-control" id="inputUsername" placeholder="Username" autofocus>
+	  </div>
+	  <div class="col-md-4 col-md-offset-4 form-group">
+	    <input type="password" name="password" class="form-control" id="inputPassword" placeholder="Password">
+	  </div>
+		<div class="col-md-4 col-md-offset-4">
+	  	<button type="submit" class="btn btn-primary pull-right">Login</button>
+		</div>
+	</form>
+</div>
+
+</%def>
+
+<%def name="javascriptIncludes()">
+<script>
+	%if msg:
+		$(".alerts").html('<div class="alert alert-warning">${msg}</div>').show();
+	%endif
+</script>
+</%def>

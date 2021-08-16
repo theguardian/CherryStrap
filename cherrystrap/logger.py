@@ -16,6 +16,7 @@
 import os
 import threading
 import logging
+import json
 from logging import handlers
 
 import cherrystrap
@@ -29,47 +30,48 @@ MAX_FILES = 5
 class RotatingLogger(object):
 
     def __init__(self, filename, max_size, max_files):
-    
+
         self.filename = filename
         self.max_size = max_size
         self.max_files = max_files
-        
-        
+
+
     def initLogger(self, loglevel=1):
-    
+
         l = logging.getLogger('cherrystrap')
         l.setLevel(logging.DEBUG)
-        
+
         self.filename = os.path.join(cherrystrap.LOGDIR, self.filename)
-        
+
         filehandler = handlers.RotatingFileHandler(self.filename, maxBytes=self.max_size, backupCount=self.max_files)
         filehandler.setLevel(logging.DEBUG)
-        
-        fileformatter = logging.Formatter('%(asctime)s - %(levelname)-7s :: %(message)s', '%d-%b-%Y %H:%M:%S')
-        
+
+        fileformatter = logging.Formatter('{"timestamp": "%(asctime)s", "level": "%(levelname)s", "message": %(message)s}', '%d-%b-%Y %H:%M:%S')
+
         filehandler.setFormatter(fileformatter)
         l.addHandler(filehandler)
-        
+
         if loglevel:
             consolehandler = logging.StreamHandler()
             if loglevel == 1:
                 consolehandler.setLevel(logging.INFO)
             if loglevel == 2:
                 consolehandler.setLevel(logging.DEBUG)
-            consoleformatter = logging.Formatter('%(asctime)s - %(levelname)s :: %(message)s', '%d-%b-%Y %H:%M:%S')
+            consoleformatter = logging.Formatter('{"timestamp": "%(asctime)s", "level": "%(levelname)s", "message": %(message)s}', '%d-%b-%Y %H:%M:%S')
             consolehandler.setFormatter(consoleformatter)
-            l.addHandler(consolehandler)    
-        
+            l.addHandler(consolehandler)
+
     def log(self, message, level):
 
         logger = logging.getLogger('cherrystrap')
-        
+
         threadname = threading.currentThread().getName()
-        
+
+        if message[0]!="{":
+            message = json.dumps(message)
+
         if level != 'DEBUG':
             cherrystrap.LOGLIST.insert(0, (formatter.now(), message, level, threadname))
-        
-        message = threadname + ' : ' + message
 
         if level == 'DEBUG':
             logger.debug(message)
@@ -80,17 +82,17 @@ class RotatingLogger(object):
         else:
             logger.error(message)
 
-cherrystrap_log = RotatingLogger('cherrystrap.log', MAX_SIZE, MAX_FILES)
+# todo: This needs to be abstracted for CherryStrap..
+cherrystrap_log = RotatingLogger('CherryStrap.log', MAX_SIZE, MAX_FILES)
 
 def debug(message):
     cherrystrap_log.log(message, level='DEBUG')
 
 def info(message):
     cherrystrap_log.log(message, level='INFO')
-    
+
 def warn(message):
     cherrystrap_log.log(message, level='WARNING')
-    
+
 def error(message):
     cherrystrap_log.log(message, level='ERROR')
-    

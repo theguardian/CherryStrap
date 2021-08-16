@@ -1,0 +1,83 @@
+<%inherit file="base.html"/>
+<%!
+	import cherrystrap
+%>
+
+<%def name="headIncludes()">
+<title>${cherrystrap.APP_NAME}: ${title}</title>
+</%def>
+
+<%def name="body()">
+<h1>Application Log</h1>
+	<div class="row">
+		<div class="col-md-12 table-responsive">
+			<table class="table table-striped" id="log_table">
+				<thead>
+					<tr>
+						<th id="timestamp">Timestamp</th>
+						<th id="level">Level</th>
+						<th id="thread">Thread</th>
+						<th id="message">Message</th>
+					</tr>
+				</thead>
+			</table>
+		</div>
+	</div>
+
+	<div class="well col-md-12" style="margin-top:15px">
+		<div class="col-md-4 col-md-offset-4 input-group">
+			<div class="input-group-addon">Refresh:&nbsp;</div>
+			<select name="refresh_rate" class="form-control" id="refreshrate" onchange="setRefresh()">
+				<option value="0" selected="selected">Disable</option>
+				<option value="2">2</option>
+				<option value="5">5</option>
+				<option value="15">15</option>
+				<option value="30">30</option>
+				<option value="60">60</option>
+				<option value="300">300</option>
+				<option value="600">600</option>
+			</select>
+			<div class="input-group-addon">Seconds</div>
+		</div>
+	</div>
+</%def>
+
+<%def name="javascriptIncludes()">
+	<script>
+		$(document).ready(function() {
+			$('#log_table').DataTable({
+				serverSide: true,
+				ajax: {
+					url: '/api/v1/applicationlog?token=${cherrystrap.API_TOKEN}',
+					type: 'get',
+				},
+				order: [[ 0, 'desc' ]],
+				createdRow: function (row, data, index) {
+					if (data[1] == "ERROR") {
+							$(row).addClass('alert-danger');
+					}
+					else if (data[1] == "WARNING") {
+							$(row).addClass('alert-warning');
+					}
+				}
+			});
+		});
+
+		var timer;
+		function setRefresh()
+		{
+			refreshrate = document.getElementById('refreshrate');
+			if(refreshrate != null)
+			{
+				if(timer)
+				{
+					clearInterval(timer);
+				}
+				if(refreshrate.value != 0)
+				{
+					timer = setInterval("$('#log_table').DataTable().draw()",1000*refreshrate.value);
+				}
+			}
+		}
+	</script>
+</%def>

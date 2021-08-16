@@ -1,14 +1,15 @@
 import os, cherrypy, urllib, collections
 from cherrypy import _cperror
-from lib import simplejson as json
-from auth import AuthController, require, member_of, name_is
-from templating import serve_template
+from cherrypy.lib.static import serve_file
+import simplejson as json
+from cherrystrap.auth import AuthController, require, member_of, name_is
+from cherrystrap.templating import serve_template
 
 import threading, time
 
 import cherrystrap
 
-from cherrystrap import logger, formatter, database
+from cherrystrap import logger, formatter
 
 SESSION_KEY = '_cp_username'
 
@@ -52,9 +53,9 @@ class WebInterface(object):
     config.exposed = True
 
     @require()
-    def logs(self):
-        return serve_template(templatename="logs.html", title="Log", lineList=cherrystrap.LOGLIST)
-    logs.exposed = True
+    def log(self):
+        return serve_template(templatename="log.html", title="Log", lineList=cherrystrap.LOGLIST)
+    log.exposed = True
 
     @require()
     def shutdown(self):

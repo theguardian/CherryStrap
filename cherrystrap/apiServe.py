@@ -1,8 +1,8 @@
 import cherrypy, collections
 import cherrystrap
-from lib import simplejson as json
-from lib.passlib.hash import sha256_crypt
-from cherrystrap import logger, formatter
+import simplejson as json
+from passlib.hash import sha256_crypt
+from cherrystrap import logger, formatter, database
 
 class settings(object):
     exposed = True
@@ -54,9 +54,9 @@ class settings(object):
         #===============================================================
         # Import a variable injector from your app's __init__.py
         try:
-            from yourapp import injectApiConfigGet
+            from appfiles import injectApiConfigGet
             configuration.update(injectApiConfigGet())
-        except Exception, e:
+        except Exception as e:
             logger.debug("There was a problem injection application variables into API-GET: %s" % e)
         #================================================================
 
@@ -122,7 +122,7 @@ class settings(object):
             if httpPassProcess != cherrystrap.HTTP_PASS and httpPassProcess != "":
                 try:
                     cherrystrap.HTTP_PASS = sha256_crypt.encrypt(httpPassProcess)
-                except Exception, e:
+                except Exception as e:
                     logger.error('There was a problem generating password hash: %s' % e)
             elif httpPassProcess == "":
                 cherrystrap.HTTP_PASS = ""
@@ -148,7 +148,7 @@ class settings(object):
             if mysqlPassProcess != cherrystrap.MYSQL_PASS and mysqlPassProcess != "":
                 try:
                     cherrystrap.MYSQL_PASS = formatter.encode('obscure', mysqlPassProcess)
-                except Exception, e:
+                except Exception as e:
                     logger.error('There was a problem encoding MySQL password: %s' % e)
             elif mysqlPassProcess == "":
                 cherrystrap.MYSQL_PASS = ""
@@ -188,9 +188,9 @@ class settings(object):
         #===============================================================
         # Import a variable injector from your app's __init__.py
         try:
-            from yourapp import injectApiConfigPut
+            from appfiles import injectApiConfigPut
             kwargs, errorList = injectApiConfigPut(kwargs, errorList)
-        except Exception, e:
+        except Exception as e:
             logger.debug("There was a problem injection application variables into API-PUT: %s" % e)
         #================================================================
 
@@ -213,7 +213,7 @@ class settings(object):
             return "{\"status\": \"error\", \"message\": \"Invalid Token\"}"
         return "{\"status\": \"error\", \"message\": \"DELETE not available at this endpoint\"}"
 
-class log(object):
+class applicationlog(object):
     exposed = True
 
     def GET(self, token=None, draw=1, start=0, length=100, **kwargs):
@@ -229,7 +229,7 @@ class log(object):
         sortdir = 'desc'
 
         if kwargs is not None:
-            for key, value in kwargs.iteritems():
+            for key, value in kwargs.items():
                 if key == 'search[value]':
                     search = str(value).lower()
                 if key == 'order[0][dir]':

@@ -10,20 +10,20 @@ def createDb(DATABASE_TYPE, DATADIR, APP_NAME, MYSQL_HOST, MYSQL_PORT,
     if DATABASE_TYPE == "sqlite":
         try:
             import sqlite3
-        except Exception, e:
+        except Exception as e:
             logger.warn("SQLite is not installed: %s" % e)
 
         try:
             DBFILE = os.path.join(DATADIR, '%s.db' % APP_NAME)
             conn = sqlite3.connect(DBFILE)
             c = conn.cursor()
-        except Exception, e:
+        except Exception as e:
             logger.warn("Could not connect to SQLite database: %s" % e)
 
         #===============================================================
         # Import a schema injection system per your  app's __init__.py
         try:
-            from yourapp import injectDbSchema
+            from appfiles import injectDbSchema
             injection = injectDbSchema()
             for table, schema in injection.items():
                 c.execute('CREATE TABLE IF NOT EXISTS %s (id INTEGER PRIMARY KEY)' % table)
@@ -33,7 +33,7 @@ def createDb(DATABASE_TYPE, DATADIR, APP_NAME, MYSQL_HOST, MYSQL_PORT,
                     except sqlite3.OperationalError:
                         c.execute('ALTER TABLE %s ADD COLUMN %s %s' % (table, columnName, columnFormat))
                         logger.info('Column %s created in table %s' % (columnName, table))
-        except Exception, e:
+        except Exception as e:
             logger.warn("There was a problem initializing SQLite database schema: %s" % e)
         #===============================================================
 
@@ -56,7 +56,7 @@ def createDb(DATABASE_TYPE, DATADIR, APP_NAME, MYSQL_HOST, MYSQL_PORT,
             c_ini.execute('CREATE DATABASE IF NOT EXISTS %s CHARACTER SET = %s COLLATE = %s' % (APP_NAME, 'utf8', 'utf8_unicode_ci'))
             conn_ini.commit()
             c_ini.close()
-        except Exception, e:
+        except Exception as e:
             logger.warn("There was a problem creating the MySQL database: %s" % e)
 
         # Now we're free to build our schema
@@ -68,7 +68,7 @@ def createDb(DATABASE_TYPE, DATADIR, APP_NAME, MYSQL_HOST, MYSQL_PORT,
 
             #===============================================================
             # Import a schema injection system per your  app's __init__.py
-            from yourapp import injectDbSchema
+            from appfiles import injectDbSchema
             injection = injectDbSchema()
             for table, schema in injection.items():
                 c.execute('CREATE TABLE IF NOT EXISTS %s (id INTEGER PRIMARY KEY)' % table)
@@ -82,7 +82,7 @@ def createDb(DATABASE_TYPE, DATADIR, APP_NAME, MYSQL_HOST, MYSQL_PORT,
 
             conn.commit()
             c.close()
-        except Exception, e:
+        except Exception as e:
             logger.warn("There was a problem initializing MySQL database schema: %s" % e)
 
     else:
