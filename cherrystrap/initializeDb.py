@@ -50,7 +50,7 @@ def createDb(DATABASE_TYPE, DATADIR, APP_NAME, MYSQL_HOST, MYSQL_PORT,
 
         try:
             conn_ini = MySQLdb.Connection(host=MYSQL_HOST, port=MYSQL_PORT,
-            user=MYSQL_USER, passwd=formatter.decode('obscure', MYSQL_PASS),
+            user=MYSQL_USER, passwd=formatter.decode(MYSQL_PASS),
             charset='utf8', use_unicode=True)
             c_ini = conn_ini.cursor(MySQLdb.cursors.DictCursor)
             c_ini.execute('CREATE DATABASE IF NOT EXISTS %s CHARACTER SET = %s COLLATE = %s' % (APP_NAME, 'utf8', 'utf8_unicode_ci'))
@@ -62,7 +62,7 @@ def createDb(DATABASE_TYPE, DATADIR, APP_NAME, MYSQL_HOST, MYSQL_PORT,
         # Now we're free to build our schema
         try:
             conn = MySQLdb.Connection(host=MYSQL_HOST, port=MYSQL_PORT,
-            user=MYSQL_USER, passwd=formatter.decode('obscure', MYSQL_PASS),
+            user=MYSQL_USER, passwd=formatter.decode(MYSQL_PASS),
             charset='utf8', use_unicode=True, db=APP_NAME)
             c = conn.cursor(MySQLdb.cursors.DictCursor)
 

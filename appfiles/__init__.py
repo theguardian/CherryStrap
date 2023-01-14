@@ -14,6 +14,8 @@ def injectVarCheck(CFG):
 
 #    CPU_INFO_PATH = check_setting_str(CFG, 'System', 'cpuInfoPath', '/proc/cpuinfo')
 
+    return
+
 def injectDbSchema():
 
 #    schema = {}

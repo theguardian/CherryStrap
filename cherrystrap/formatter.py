@@ -43,22 +43,13 @@ def checked(variable):
     else:
         return ''
 
-def encode(key, clear):
-    enc = []
-    for i in range(len(clear)):
-        key_c = key[i % len(key)]
-        enc_c = chr((ord(clear[i]) + ord(key_c)) % 256)
-        enc.append(enc_c)
-    return base64.urlsafe_b64encode("".join(enc))
+def encode(pw_string):
+    b_string = pw_string.encode('utf-8')
+    return base64.urlsafe_b64encode(b_string).decode('utf-8')
 
-def decode(key, enc):
-    dec = []
-    enc = base64.urlsafe_b64decode(enc.encode("utf-8"))
-    for i in range(len(enc)):
-        key_c = key[i % len(key)]
-        dec_c = chr((256 + ord(enc[i]) - ord(key_c)) % 256)
-        dec.append(dec_c)
-    return "".join(dec)
+def decode(enc_bytes):
+    b_string = base64.urlsafe_b64decode(enc_bytes.encode('utf-8'))
+    return b_string.decode('utf-8')
 
 def latinToAscii(unicrap):
     """

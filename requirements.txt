@@ -3,14 +3,10 @@ cherrypy
 configobj
 httplib2
 mako
-oauth2
-oauthlib
+mysqlclient
 passlib
 portend
-python-twitter
 pytz
-requests
-requests_oauthlib
 simplejson
 six
 tzlocal
