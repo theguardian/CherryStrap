@@ -147,7 +147,7 @@ class settings(object):
             mysqlPassProcess = kwargs.pop('mysqlPass', None)
             if mysqlPassProcess != cherrystrap.MYSQL_PASS and mysqlPassProcess != "":
                 try:
-                    cherrystrap.MYSQL_PASS = formatter.encode('obscure', mysqlPassProcess)
+                    cherrystrap.MYSQL_PASS = formatter.encode(mysqlPassProcess)
                 except Exception as e:
                     logger.error('There was a problem encoding MySQL password: %s' % e)
             elif mysqlPassProcess == "":
