@@ -22,9 +22,9 @@ static/images/server.png
 .Spotlight-V100
 .Trashes
 *DS_Store
-._dockerfile
 desktop.ini
 ehthumbs.db
 Thumbs.db
 .directory
+._*
 *~
