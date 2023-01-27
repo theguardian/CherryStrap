@@ -1,5 +1,5 @@
 # This file is sourced from the Headphones Project
-# https://github.com/rembo10/headphones/blob/master/headphones/versioncheck.py
+# https://github.com/rembo10/headphones/blob/main/headphones/versioncheck.py
 
 import re
 import os
@@ -11,6 +11,7 @@ import simplejson as json
 from urllib.request import urlopen
 
 from cherrystrap import logger
+import appfiles
 
 def runGit(args):
 
@@ -57,7 +58,7 @@ def getVersion():
         cherrystrap.INSTALL_TYPE = 'win'
 
         # Don't have a way to update exe yet, but don't want to set VERSION to None
-        return 'Windows Install', 'master'
+        return 'Windows Install', 'main'
 
     elif os.path.isdir(os.path.join(cherrystrap.PROG_DIR, '.git')):
 
@@ -74,19 +75,19 @@ def getVersion():
             logger.error('Output doesn\'t look like a hash, not using it')
             cur_commit_hash = None
 
-        if cherrystrap.GIT_OVERRIDE and cherrystrap.GIT_BRANCH:
-            branch_name = cherrystrap.GIT_BRANCH
+        if cherrystrap.GIT_OVERRIDE and appfiles.GIT_BRANCH:
+            branch_name = appfiles.GIT_BRANCH
 
         else:
             branch_name, err = runGit('rev-parse --abbrev-ref HEAD')
             branch_name = branch_name
 
-            if not branch_name and cherrystrap.GIT_BRANCH:
-                logger.error('Could not retrieve branch name from git. Falling back to %s' % cherrystrap.GIT_BRANCH)
-                branch_name = cherrystrap.GIT_BRANCH
+            if not branch_name and appfiles.GIT_BRANCH:
+                logger.error('Could not retrieve branch name from git. Falling back to %s' % appfiles.GIT_BRANCH)
+                branch_name = appfiles.GIT_BRANCH
             if not branch_name:
-                logger.error('Could not retrieve branch name from git. Defaulting to master')
-                branch_name = 'master'
+                logger.error('Could not retrieve branch name from git. Defaulting to main')
+                branch_name = 'main'
 
         return cur_commit_hash, branch_name
 
@@ -97,15 +98,15 @@ def getVersion():
         version_file = os.path.join(cherrystrap.PROG_DIR, 'version.txt')
 
         if not os.path.isfile(version_file):
-            return None, 'master'
+            return None, 'main'
 
         with open(version_file, 'r') as f:
             current_version = f.read().strip(' \n\r')
 
         if current_version:
-            return current_version, cherrystrap.GIT_BRANCH
+            return current_version, appfiles.GIT_BRANCH
         else:
-            return None, 'master'
+            return None, 'main'
 
 
 def checkGithub():
@@ -113,7 +114,7 @@ def checkGithub():
 
     # Get the latest version available from github
     logger.info('Retrieving latest version information from GitHub')
-    url = 'https://api.github.com/repos/%s/%s/commits/%s' % (cherrystrap.GIT_USER, cherrystrap.GIT_REPO, cherrystrap.GIT_BRANCH)
+    url = 'https://api.github.com/repos/%s/%s/commits/%s' % (appfiles.GIT_USER, appfiles.GIT_REPO, appfiles.GIT_BRANCH)
     try:
         result = urlopen(url).read()
         version = json.JSONDecoder().decode(result)
@@ -134,7 +135,7 @@ def checkGithub():
         return cherrystrap.GIT_UPSTREAM
 
     logger.info('Comparing currently installed version with latest GitHub version')
-    url = 'https://api.github.com/repos/%s/%s/compare/%s...%s' % (cherrystrap.GIT_USER, cherrystrap.GIT_REPO, cherrystrap.GIT_UPSTREAM, cherrystrap.GIT_LOCAL)
+    url = 'https://api.github.com/repos/%s/%s/compare/%s...%s' % (appfiles.GIT_USER, appfiles.GIT_REPO, cherrystrap.GIT_UPSTREAM, cherrystrap.GIT_LOCAL)
     try:
         result = urlopen(url).read()
         commits = json.JSONDecoder().decode(result)
@@ -162,7 +163,7 @@ def update():
         logger.info('Windows .exe updating not supported yet.')
 
     elif cherrystrap.INSTALL_TYPE == 'git':
-        output, err = runGit('pull origin ' + cherrystrap.GIT_BRANCH)
+        output, err = runGit('pull origin ' + appfiles.GIT_BRANCH)
 
         if not output:
             logger.error('Couldn\'t download latest version')
@@ -177,7 +178,7 @@ def update():
                 logger.info('Output: ' + str(output))
 
     else:
-        tar_download_url = 'https://github.com/%s/%s/tarball/%s' % (cherrystrap.GIT_USER, cherrystrap.GIT_REPO, cherrystrap.GIT_BRANCH)
+        tar_download_url = 'https://github.com/%s/%s/tarball/%s' % (appfiles.GIT_USER, appfiles.GIT_REPO, appfiles.GIT_BRANCH)
         update_dir = os.path.join(cherrystrap.PROG_DIR, 'update')
         version_path = os.path.join(cherrystrap.PROG_DIR, 'version.txt')
 
@@ -188,7 +189,7 @@ def update():
             logger.error("Unable to retrieve new version from '%s', can't update", tar_download_url)
             return
 
-        download_name = cherrystrap.GIT_BRANCH + '-github'
+        download_name = appfiles.GIT_BRANCH + '-github'
         tar_download_path = os.path.join(cherrystrap.PROG_DIR, download_name)
 
         # Save tar to disk

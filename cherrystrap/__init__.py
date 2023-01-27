@@ -49,7 +49,7 @@ LOGLIST = []
 APP_NAME = None
 HTTP_ROOT = None
 HTTP_HOST = None
-HTTP_PORT = None
+HTTP_PORT = 7889
 HTTPS_ENABLED = False
 HTTPS_KEY = None
 HTTPS_CERT = None
@@ -63,14 +63,11 @@ API_TOKEN = None
 
 DATABASE_TYPE = None
 MYSQL_HOST = None
-MYSQL_PORT = None
+MYSQL_PORT = 3306
 MYSQL_USER = None
 MYSQL_PASS = None
 
 GIT_EXISTS = False
-GIT_USER = None
-GIT_REPO = None
-GIT_BRANCH = None
 GIT_UPSTREAM = None
 GIT_LOCAL = None
 GIT_OVERRIDE = False
@@ -88,8 +85,8 @@ def initialize():
         HTTP_USER, HTTP_PASS, HTTP_ROOT, HTTP_LOOK, VERIFY_SSL, \
         LAUNCH_BROWSER, HTTPS_ENABLED, HTTPS_KEY, HTTPS_CERT, API_TOKEN, \
         DATABASE_TYPE, MYSQL_HOST, MYSQL_PORT, MYSQL_USER, MYSQL_PASS, \
-        GIT_ENABLED, GIT_PATH, GIT_BRANCH, GIT_USER, GIT_STARTUP, GIT_INTERVAL, \
-        GIT_OVERRIDE, GIT_REPO, GIT_UPSTREAM, GIT_LOCAL, GIT_EXISTS
+        GIT_ENABLED, GIT_PATH, GIT_STARTUP, GIT_INTERVAL, \
+        GIT_OVERRIDE, GIT_UPSTREAM, GIT_LOCAL, GIT_EXISTS
 
         if __INITIALIZED__:
             return False
@@ -124,7 +121,7 @@ def initialize():
             except OSError:
                 logger.error('Could not create cachedir. Check permissions of: ' + DATADIR)
 
-        GIT_EXISTS = os.path.isdir(os.path.join(DATADIR, '.git'))
+        GIT_EXISTS = os.path.isdir(os.path.join(PROG_DIR, '.git'))
 
         # Attempt to find location of git in this environment
         if GIT_EXISTS:
@@ -186,9 +183,6 @@ def initialize():
 
         GIT_ENABLED = check_setting_bool(CFG, 'Git', 'gitEnabled', git_enabled)
         GIT_PATH = check_setting_str(CFG, 'Git', 'gitPath', git_path)
-        GIT_USER = check_setting_str(CFG, 'Git', 'gitUser', 'theguardian')
-        GIT_REPO = check_setting_str(CFG, 'Git', 'gitRepo', 'CherryStrap')
-        GIT_BRANCH = check_setting_str(CFG, 'Git', 'gitBranch', 'master')
         GIT_UPSTREAM = check_setting_str(CFG, 'Git', 'gitUpstream', '')
         GIT_LOCAL = check_setting_str(CFG, 'Git', 'gitLocal', '')
         GIT_STARTUP = check_setting_bool(CFG, 'Git', 'gitStartup', git_startup)
@@ -338,9 +332,6 @@ def config_write():
     new_config['Git'] = {}
     new_config['Git']['gitEnabled'] = GIT_ENABLED
     new_config['Git']['gitPath'] = GIT_PATH
-    new_config['Git']['gitUser'] = GIT_USER
-    new_config['Git']['gitRepo'] = GIT_REPO
-    new_config['Git']['gitBranch'] = GIT_BRANCH
     new_config['Git']['gitUpstream'] = GIT_UPSTREAM
     new_config['Git']['gitLocal'] = GIT_LOCAL
     new_config['Git']['gitStartup'] = GIT_STARTUP

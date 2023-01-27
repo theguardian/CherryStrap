@@ -4,17 +4,20 @@ from cherrystrap.configCheck import CheckSection, check_setting_int, check_setti
 # In this file you can declare additional variables specific to your app.
 # Use cherrystrap/__init__.py as your guide... below is a commented-out
 # example:
-#CPU_INFO_PATH = None
+
+GIT_USER = 'theguardian'
+GIT_REPO = 'CherryStrap'
+GIT_BRANCH = 'master'
 
 def injectVarCheck(CFG):
 
-#    global CPU_INFO_PATH
+    global GIT_USER, GIT_REPO, GIT_BRANCH
 
-#    CheckSection(CFG, 'System')
+    CheckSection(CFG, 'source')
 
-#    CPU_INFO_PATH = check_setting_str(CFG, 'System', 'cpuInfoPath', '/proc/cpuinfo')
-
-    return
+    GIT_USER = check_setting_str(CFG, 'source', 'gitUser', 'theguardian')
+    GIT_REPO = check_setting_str(CFG, 'source', 'gitRepo', 'CherryStrap')
+    GIT_BRANCH = check_setting_str(CFG, 'source', 'gitBranch', 'master')
 
 def injectDbSchema():
 
@@ -27,24 +30,34 @@ def injectDbSchema():
 
 def injectApiConfigGet():
 
-#    injection = {
-#        "system": {
-#            "cpuInfoPath": CPU_INFO_PATH
-#        }
-#    }
+    injection = {
+        "source": {
+            "gitBranch": GIT_BRANCH,
+            "gitUser": GIT_USER,
+            "gitRepo": GIT_REPO
+        }
+    }
 
     return injection
 
 def injectApiConfigPut(kwargs, errorList):
-#    global CPU_INFO_PATH
 
-#    if 'cpuInfoPath' in kwargs:
-#        CPU_INFO_PATH = kwargs.pop('cpuInfoPath', '/proc/cpuinfo')
+    global GIT_USER, GIT_REPO, GIT_BRANCH
+
+    if 'gitUser' in kwargs:
+        GIT_USER = kwargs.pop('gitUser', 'theguardian')
+    if 'gitRepo' in kwargs:
+        GIT_REPO = kwargs.pop('gitRepo', 'CherryStrap')
+    if 'gitBranch' in kwargs:
+        GIT_BRANCH = kwargs.pop('gitBranch', 'master')
 
     return kwargs, errorList
 
 def injectVarWrite(new_config):
-#    new_config['System'] = {}
-#    new_config['System']['cpuInfoPath'] = CPU_INFO_PATH
+
+    new_config['source'] = {}
+    new_config['source']['gitUser'] = GIT_USER
+    new_config['source']['gitRepo'] = GIT_REPO
+    new_config['source']['gitBranch'] = GIT_BRANCH
 
     return new_config

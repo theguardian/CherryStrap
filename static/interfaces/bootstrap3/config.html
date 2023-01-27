@@ -14,6 +14,7 @@
     <li><a href="#interface-config" data-toggle="tab">Interface</a></li>
     <li><a href="#database-config" data-toggle="tab">Database</a></li>
     <li><a href="#updater-config" data-toggle="tab">Update</a></li>
+    <li><a href="#scheduler-config" data-toggle="tab">Scheduler</a></li>
 </ul>
 <form id="config_form">
   <div class="row col-md-12 tab-content">
@@ -182,6 +183,46 @@
       </div>
     </div>
 
+    <div class="tab-pane" id="scheduler-config">
+      <br/>
+      <div class="row">
+        <div class="col-md-12 form-group">
+          <label for="schedulerType">Scheduler Type</label>
+          <select name="schedulerType" class="form-control" id="schedulerType">
+            <option value="" id="schedulerDisabled">Disabled</option>
+            <option value="interval" id="schedulerinterval">Interval</option>
+            <option value="cron" id="schedulercron">Cron</option>
+          </select>
+        </div>
+        <div class="col-md-12" id="schedulerGroup" style="display:none;">
+          <div class="col-md-12" id="schedulerFrequencyGroup" style="display:none;">
+            <div class="col-md-6 form-group">
+              <label for="schedulerFrequency">Scheduler Frequency</label>
+              <input type="text" name="schedulerFrequency" value="" class="form-control" id="schedulerFrequency" placeholder="8">
+            </div>
+            <div class="col-md-6 form-group">
+              <label for="schedulerUnits">Scheduler Units</label>
+              <select name="schedulerUnits" class="form-control" id="schedulerUnits">
+                <option value="minutes" id="schedulerminutes">Minutes</option>
+                <option value="hours" id="schedulerhours">Hours</option>
+              </select>
+            </div>
+          </div>
+          <div class="col-md-12" id="schedulerCronGroup" style="display:none;">
+            <div class="col-md-12 form-group">
+              <label for="schedulerCron">Scheduler Cron</label>
+              <input type="text" name="schedulerCron" value="" class="form-control" id="schedulerCron" placeholder="0 */8 * * *">
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 form-group">
+          <label for="runOnBoot">&nbsp;Run On Boot</label>
+          <input type="hidden" name="runOnBootHidden" value="false" id="runOnBootHidden">
+          <input type="checkbox" name="runOnBoot" value="true" class="checkbox pull-left" id="runOnBoot">
+        </div>
+      </div>
+    </div>
+
     <button type="submit" class="btn btn-primary pull-right">Save Configuration</button>
   </div>
 </form>
@@ -228,10 +269,6 @@
         }).val(value);
       }
 
-      if (key == 'dbType') {
-        $('#'+value).prop('selected', true);
-      }
-
       if (key == 'dbType' && value == 'mysql') {
         $('#mysqlGroup').show();
       }
@@ -254,16 +291,16 @@
       }
     });
 
-    $.each(data['system'], function(key, value) {
-
+    $.each(data['source'], function(key, value) {
       if ($('#'+key).attr('type') == 'text' || $('#'+key).attr('type') == 'password') {
         $('form input').filter(function() {
           return key == this.id;
         }).val(value);
       }
+
     });
 
-    $.each(data['notifications'], function(key, value) {
+    $.each(data['scheduler'], function(key, value) {
       if ($('#'+key).attr('type') == 'text' || $('#'+key).attr('type') == 'password') {
         $('form input').filter(function() {
           return key == this.id;
@@ -275,59 +312,23 @@
         }).prop('checked', true);
       }
 
-      if (key == 'notificationType') {
-        $('#notification'+value).prop('selected', true);
+      if (key == 'schedulerType') {
+        $('#scheduler'+value).prop('selected', true);
       }
 
-      if (key == 'notificationUnits') {
-        $('#notification'+value).prop('selected', true);
+      if (key == 'schedulerUnits') {
+        $('#scheduler'+value).prop('selected', true);
       }
 
-      if (key == 'notificationType' && value == 'interval') {
-        $('#notificationGroup').show();
-        $('#notificationFrequencyGroup').show();
-        $('#notificationCronGroup').hide();
+      if (key == 'schedulerType' && value == 'interval') {
+        $('#schedulerGroup').show();
+        $('#schedulerFrequencyGroup').show();
+        $('#schedulerCronGroup').hide();
       }
-      else if (key == 'notificationType' && value == 'cron') {
-        $('#notificationGroup').show();
-        $('#notificationCronGroup').show();
-        $('#notificationFrequencyGroup').hide();
-      }
-
-      if (key == 'twitterEnabled') {
-        $('#twitterGroup').show();
-      }
-    });
-
-    $.each(data['logger'], function(key, value) {
-      if ($('#'+key).attr('type') == 'text' || $('#'+key).attr('type') == 'password') {
-        $('form input').filter(function() {
-          return key == this.id;
-        }).val(value);
-      }
-      else if ($('#'+key).attr('type') == 'checkbox' && value == true) {
-        $('form input').filter(function() {
-          return key == this.id;
-        }).prop('checked', true);
-      }
-
-      if (key == 'loggerType') {
-        $('#logger'+value).prop('selected', true);
-      }
-
-      if (key == 'loggerUnits') {
-        $('#logger'+value).prop('selected', true);
-      }
-
-      if (key == 'loggerType' && value == 'interval') {
-        $('#loggerGroup').show();
-        $('#loggerFrequencyGroup').show();
-        $('#loggerCronGroup').hide();
-      }
-      else if (key == 'loggerType' && value == 'cron') {
-        $('#loggerGroup').show();
-        $('#loggerCronGroup').show();
-        $('#loggerFrequencyGroup').hide();
+      else if (key == 'schedulerType' && value == 'cron') {
+        $('#schedulerGroup').show();
+        $('#schedulerCronGroup').show();
+        $('#schedulerFrequencyGroup').hide();
       }
     });
 
@@ -351,59 +352,23 @@
     $('#gitGroup')[this.checked ? "show" : "hide"]();
   });
 
-  $('#notificationType').change(function(){
-     if($(this).val() == 'interval'){
-      $('#notificationGroup').show();
-      $('#notificationFrequencyGroup').show();
-      $('#notificationCronGroup').hide();
-      return true;
-     }
-     else if($(this).val() == 'cron'){
-       $('#notificationGroup').show();
-       $('#notificationFrequencyGroup').hide();
-       $('#notificationCronGroup').show();
-       return true;
-     }
-     $('#notificationGroup').hide();
-     $('#notificationFrequencyGroup').hide();
-     $('#notificationCronGroup').hide();
+  $('#schedulerType').change(function(){
+   if($(this).val() == 'interval'){
+    $('#schedulerGroup').show();
+    $('#schedulerFrequencyGroup').show();
+    $('#schedulerCronGroup').hide();
+    return true;
+   }
+   else if($(this).val() == 'cron'){
+     $('#schedulerGroup').show();
+     $('#schedulerFrequencyGroup').hide();
+     $('#schedulerCronGroup').show();
+     return true;
+   }
+   $('#schedulerGroup').hide();
+   $('#schedulerFrequencyGroup').hide();
+   $('#schedulerCronGroup').hide();
   });
-
-  $('#loggerType').change(function(){
-     if($(this).val() == 'interval'){
-      $('#loggerGroup').show();
-      $('#loggerFrequencyGroup').show();
-      $('#loggerCronGroup').hide();
-      return true;
-     }
-     else if($(this).val() == 'cron'){
-       $('#loggerGroup').show();
-       $('#loggerFrequencyGroup').hide();
-       $('#loggerCronGroup').show();
-       return true;
-     }
-     $('#loggerGroup').hide();
-     $('#loggerFrequencyGroup').hide();
-     $('#loggerCronGroup').hide();
-  });
-
-  $('#twitterEnabled').click(function() {
-    $('#twitterGroup')[this.checked ? "show" : "hide"]();
-  });
-
-  $('#twitterStep1').click(function () {
-    $.get("twitterStep1", function (data) {window.open(data); })
-        .done(function () { $('#testTwitter-result').html('<b>Step1:</b> Confirm Authorization'); });
-    });
-    $('#twitterStep2').click(function () {
-        var twitter_key = $("#twitter_key").val();
-        $.get("twitterStep2", {'key': twitter_key},
-            function (data) { $('#testTwitter-result').html(data); });
-    });
-    $('#testTwitter').click(function () {
-        $.get("testTwitter",
-            function (data) { $('#testTwitter-result').html(data); });
-    });
 
   $("#config_form").submit(function() {
     //var formData = JSON.stringify($("#config_form").serializeArray());

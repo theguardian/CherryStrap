@@ -40,9 +40,6 @@ class settings(object):
             "git": {
                 "gitEnabled": bool(cherrystrap.GIT_ENABLED),
                 "gitPath": cherrystrap.GIT_PATH,
-                "gitUser": cherrystrap.GIT_USER,
-                "gitRepo": cherrystrap.GIT_REPO,
-                "gitBranch": cherrystrap.GIT_BRANCH,
                 "gitUpstream": cherrystrap.GIT_UPSTREAM,
                 "gitLocal": cherrystrap.GIT_LOCAL,
                 "gitStartup": bool(cherrystrap.GIT_STARTUP),
