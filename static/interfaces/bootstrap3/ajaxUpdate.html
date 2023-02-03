@@ -1,5 +1,6 @@
 <%!
     import cherrystrap
+    import appfiles
 %>
 <script>
   % if cherrystrap.GIT_ENABLED and not cherrystrap.GIT_LOCAL:
@@ -12,7 +13,7 @@
   % elif cherrystrap.GIT_ENABLED and cherrystrap.GIT_LOCAL != cherrystrap.GIT_UPSTREAM and cherrystrap.COMMITS_BEHIND > 0:
     $(".ajaxMsg").html(`
       <div class="alert alert-info">
-        A <a href="https://github.com/${cherrystrap.GIT_USER}/${cherrystrap.GIT_REPO}/compare/${cherrystrap.GIT_LOCAL}...${cherrystrap.GIT_UPSTREAM}">
+        A <a href="https://github.com/${appfiles.GIT_USER}/${appfiles.GIT_REPO}/compare/${cherrystrap.GIT_LOCAL}...${cherrystrap.GIT_UPSTREAM}">
         newer version</a> of ${cherrystrap.APP_NAME} is available.
         You're ${cherrystrap.COMMITS_BEHIND} commits behind.
         <a href="update">Update</a> or <a onclick="dismissAjax()" onmouseover="" style="cursor: pointer;">Dismiss</a>
